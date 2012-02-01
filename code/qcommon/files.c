@@ -2940,7 +2940,7 @@ static void FS_CheckPak0( void )
 			"the correct place and that every file\n"
 			"in the %s directory is present and readable.\n", BASEGAME);
 
-		Com_Error(ERR_FATAL, "You need to install Quake III Arena in order to play");
+		//Com_Error(ERR_FATAL, "You need to install Quake III Arena in order to play");
 	}
 	
 	if(foundPak & 1)

@@ -156,6 +156,7 @@ SDIR=$(MOUNT_DIR)/server
 RDIR=$(MOUNT_DIR)/renderer
 CMDIR=$(MOUNT_DIR)/qcommon
 SDLDIR=$(MOUNT_DIR)/sdl
+ESDIR=$(MOUNT_DIR)/es
 ASMDIR=$(MOUNT_DIR)/asm
 SYSDIR=$(MOUNT_DIR)/sys
 GDIR=$(MOUNT_DIR)/game
@@ -285,6 +286,9 @@ ifeq ($(PLATFORM),linux)
     OPTIMIZE += -mtune=ultrasparc3 -mv8plus
     HAVE_VM_COMPILED=true
   endif
+  ifeq ($(ARCH),arm)
+    BASE_CFLAGS += -mfpu=vfp -mfloat-abi=softfp
+  endif
   endif
   endif
 
@@ -297,9 +301,14 @@ ifeq ($(PLATFORM),linux)
   SHLIBLDFLAGS=-shared $(LDFLAGS)
 
   THREAD_LIBS=-lpthread
+
   LIBS=-ldl -lm
 
-  CLIENT_LIBS=$(shell sdl-config --libs) -lGL
+  ifeq ($(ARCH),arm)
+    CLIENT_LIBS=
+  else
+    CLIENT_LIBS=$(shell sdl-config --libs) -lGL
+  endif
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -470,6 +479,9 @@ ifeq ($(PLATFORM),mingw32)
   BINEXT=.exe
 
   LIBS= -lws2_32 -lwinmm
+  ifdef USBDK
+   LIBS += $(BR)/khclient.lib $(BR)/khclient.dll
+  endif
   CLIENT_LDFLAGS = -mwindows
   CLIENT_LIBS = -lgdi32 -lole32 -lopengl32
 
@@ -1362,13 +1374,31 @@ Q3OBJ = \
   $(B)/client/tr_surface.o \
   $(B)/client/tr_world.o \
   \
-  $(B)/client/sdl_gamma.o \
-  $(B)/client/sdl_input.o \
-  $(B)/client/sdl_snd.o \
-  \
   $(B)/client/con_passive.o \
   $(B)/client/con_log.o \
   $(B)/client/sys_main.o
+
+
+  Q3OBJ += $(if $(or $(findstring arm,$(ARCH)), $(USBDK)), \
+             $(B)/client/es_gamma.o $(B)/client/es_snd.o, \
+             $(B)/client/sdl_gamma.o $(B)/client/sdl_snd.o)
+
+  Q3OBJ += $(if $(USBDK), \
+             $(B)/client/es_input.o, \
+             $(B)/client/sdl_input.o)
+
+#
+#ifeq ($(ARCH),arm)
+#  Q3OBJ += \
+#    $(B)/client/es_gamma.o \
+#    $(B)/client/es_input.o \
+#    $(B)/client/es_snd.o 
+#else
+#  Q3OBJ += \
+#    $(B)/client/sdl_gamma.o \
+#    $(B)/client/sdl_input.o \
+#    $(B)/client/sdl_snd.o 
+#endif
 
 ifeq ($(ARCH),i386)
   Q3OBJ += \
@@ -1467,8 +1497,18 @@ ifeq ($(USE_MUMBLE),1)
     $(B)/client/libmumblelink.o
 endif
 
-Q3POBJ += \
-  $(B)/client/sdl_glimp.o
+  Q3POBJ += $(if $(or $(findstring arm,$(ARCH)), $(USBDK)), \
+              $(B)/client/es_glimp.o $(B)/client/etc1encode.o, \
+              $(B)/client/sdl_glimp.o)
+
+#ifeq ($(ARCH),arm)
+#  Q3POBJ += \
+#    $(B)/client/es_glimp.o \
+#    $(B)/client/etc1encode.o
+#else
+#  Q3POBJ += \
+#    $(B)/client/sdl_glimp.o
+#endif
 
 Q3POBJ_SMP += \
   $(B)/clientsmp/sdl_glimp.o
@@ -1931,6 +1971,9 @@ $(B)/client/%.o: $(RDIR)/%.c
 	$(DO_CC)
 
 $(B)/client/%.o: $(SDLDIR)/%.c
+	$(DO_CC)
+
+$(B)/client/%.o: $(ESDIR)/%.c
 	$(DO_CC)
 
 $(B)/clientsmp/%.o: $(SDLDIR)/%.c

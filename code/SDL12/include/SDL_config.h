@@ -38,6 +38,8 @@
 #include "SDL_config_win32.h"
 #elif defined(__OS2__)
 #include "SDL_config_os2.h"
+#elif defined(__arm__)
+#include "SDL_config_arm.h"
 #else
 #include "SDL_config_minimal.h"
 #endif /* platform config */

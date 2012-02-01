@@ -947,10 +947,12 @@ void QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 	}
 	if (len >= size) {
 		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
+#if 0
 #ifdef	_DEBUG
 		__asm {
 			int 3;
 		}
+#endif
 #endif
 	}
 	Q_strncpyz (dest, bigbuffer, size );

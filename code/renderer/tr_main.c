@@ -1314,6 +1314,7 @@ R_DebugPolygon
 ================
 */
 void R_DebugPolygon( int color, int numPoints, float *points ) {
+#ifndef VCMODS_OPENGLES
 	int		i;
 
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
@@ -1337,6 +1338,7 @@ void R_DebugPolygon( int color, int numPoints, float *points ) {
 	}
 	qglEnd();
 	qglDepthRange( 0, 1 );
+#endif
 }
 
 /*

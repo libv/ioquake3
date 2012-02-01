@@ -43,7 +43,7 @@ int			chat_playerNum;
 qboolean	key_overstrikeMode;
 
 int				anykeydown;
-qkey_t		keys[MAX_KEYS];
+static qkey_t		keys[MAX_KEYS];
 
 
 typedef struct {

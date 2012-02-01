@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <ctype.h>
 #include <errno.h>
 
+#ifndef VCMODS_NOSDL
 #ifndef DEDICATED
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL.h"
@@ -38,6 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 #	include <SDL.h>
 #	include <SDL_cpuinfo.h>
+#endif
 #endif
 #endif
 
@@ -139,7 +141,9 @@ void Sys_Exit( int ex )
 	CON_Shutdown( );
 
 #ifndef DEDICATED
+#ifndef VCMODS_NOSDL
 	SDL_Quit( );
+#endif
 #endif
 
 #ifdef NDEBUG
@@ -172,7 +176,8 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 	cpuFeatures_t features = 0;
 
 #ifndef DEDICATED
-	if( SDL_HasRDTSC( ) )    features |= CF_RDTSC;
+#ifndef VCMODS_NOSDL
+   if( SDL_HasRDTSC( ) )    features |= CF_RDTSC;
 	if( SDL_HasMMX( ) )      features |= CF_MMX;
 	if( SDL_HasMMXExt( ) )   features |= CF_MMX_EXT;
 	if( SDL_Has3DNow( ) )    features |= CF_3DNOW;
@@ -180,6 +185,7 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 	if( SDL_HasSSE( ) )      features |= CF_SSE;
 	if( SDL_HasSSE2( ) )     features |= CF_SSE2;
 	if( SDL_HasAltiVec( ) )  features |= CF_ALTIVEC;
+#endif
 #endif
 
 	return features;
@@ -273,6 +279,10 @@ Sys_Print
 */
 void Sys_Print( const char *msg )
 {
+#if defined(VCMODS_MISC)&&defined(_WIN32)
+   OutputDebugString(msg);
+#endif
+
 	CON_LogWrite( msg );
 	CON_Print( msg );
 }
@@ -496,17 +506,68 @@ void Sys_SigHandler( int signal )
 	Sys_Exit( 0 ); // Exit with 0 to avoid recursive signals
 }
 
+#if 0
+void Sys_SigAction(int sig, siginfo_t *info, void *v)
+{
+	ucontext_t *uc = (ucontext_t *)v;
+
+	fprintf(stderr, "arm_pc = 0x%08x\n", uc->uc_mcontext.arm_pc);
+	fprintf(stderr, "arm_lr = 0x%08x\n", uc->uc_mcontext.arm_lr);
+
+	Sys_SigHandler(sig);
+}
+#endif
+
 /*
 =================
 main
 =================
 */
-int main( int argc, char **argv )
+#include "host_applications/framework/host_target.h"
+#include "host_applications/framework/platform.h"
+#include "vcos/vcos.h"
+
+static VCOS_THREAD_T mythread;
+
+int mymain(int argc, char **argv);
+
+void *q3threadentry(void *arg)
+{
+	// TODO casting away const ok?
+	return (void *) mymain(vcos_get_argc(), (char **)vcos_get_argv());
+}
+
+void host_app_message_handler(uint16_t msg, uint32_t param1, uint32_t param2)
+{
+   switch (msg) {
+      case PLATFORM_MSG_INIT:
+      {
+	 // create me a thread please
+
+#define STACK_SIZE (0x100000)
+
+	void *stack = malloc(STACK_SIZE);
+	vcos_thread_create_classic(&mythread,"mythread",q3threadentry,NULL,
+	stack,STACK_SIZE,1,1,1);
+	break;
+      }
+      case PLATFORM_MSG_END:
+      case PLATFORM_MSG_USER:
+      case PLATFORM_MSG_BUTTON_PRESS:
+      case PLATFORM_MSG_BUTTON_RELEASE:
+      {
+         break;
+      }
+   }
+}
+
+int mymain( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 
 #ifndef DEDICATED
+#ifndef VCMODS_NOSDL
 	// SDL version check
 
 	// Compile time
@@ -530,6 +591,7 @@ int main( int argc, char **argv )
 		Sys_Print( "SDL version " MINSDL_VERSION " or greater required\n" );
 		Sys_Exit( 1 );
 	}
+#endif
 #endif
 
 	Sys_PlatformInit( );
@@ -558,13 +620,25 @@ int main( int argc, char **argv )
 	signal( SIGSEGV, Sys_SigHandler );
 	signal( SIGTERM, Sys_SigHandler );
 
+#if 0
+		struct sigaction action;
+
+		memset(&action, 0, sizeof(action));
+
+		action.sa_sigaction = Sys_SigAction;
+		action.sa_flags = SA_SIGINFO;
+
+		sigaction(SIGFPE, &action, NULL);
+#endif
 	while( 1 )
 	{
 #ifndef DEDICATED
+#ifndef VCMODS_NOSDL
 		int appState = SDL_GetAppState( );
 
 		Cvar_SetValue( "com_unfocused",	!( appState & SDL_APPINPUTFOCUS ) );
 		Cvar_SetValue( "com_minimized", !( appState & SDL_APPACTIVE ) );
+#endif
 #endif
 
 		IN_Frame( );

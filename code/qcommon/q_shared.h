@@ -115,6 +115,11 @@ typedef int intptr_t;
 #include <ctype.h>
 #include <limits.h>
 
+#ifdef VCMODS_REPLACETRIG
+#define sin(f) sinf(f)
+#define cos(f) cosf(f)
+#endif
+
 // vsnprintf is ISO/IEC 9899:1999
 // abstracting this to make it portable
 #ifdef _WIN32
