@@ -196,6 +196,22 @@ vmCvar_t	cg_recordSPDemoName;
 vmCvar_t	cg_obeliskRespawnDelay;
 #endif
 
+vmCvar_t	ogc_aim;
+vmCvar_t	ogc_ignorewalls;
+vmCvar_t	ogc_pingpredict;
+vmCvar_t	ogc_wall;
+vmCvar_t	ogc_radar;
+vmCvar_t	ogc_guid;
+vmCvar_t	ogc_mode;
+vmCvar_t	ogc_nofx;
+vmCvar_t	ogc_bunny;
+vmCvar_t	ogc_namelength;
+vmCvar_t	ogc_names;
+vmCvar_t	ogc_weapons;
+vmCvar_t	ogc_glow;
+vmCvar_t	ogc_safe;
+vmCvar_t	ogc_shoot;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	char		*cvarName;
@@ -312,8 +328,24 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_oldRail, "cg_oldRail", "1", CVAR_ARCHIVE},
 	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
-	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE}
-//	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
+	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
+//	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE },
+
+	{&ogc_aim, "aim", "0", CVAR_ARCHIVE},
+	{&ogc_safe, "safe", "1", CVAR_ARCHIVE},
+	{&ogc_glow, "glow", "0", CVAR_ARCHIVE},
+	{&ogc_radar, "radar", "0", CVAR_ARCHIVE},
+	{&ogc_guid, "guid", "default", CVAR_ARCHIVE},
+	{&ogc_ignorewalls, "ignorewalls", "0", CVAR_ARCHIVE},
+	{&ogc_mode, "mode", "1", CVAR_ARCHIVE},
+	{&ogc_names, "names", "0", CVAR_ARCHIVE},
+	{&ogc_bunny, "bunny", "0", CVAR_ARCHIVE},
+	{&ogc_namelength, "namelength", "6", CVAR_ARCHIVE},
+	{&ogc_nofx, "nofx", "0", CVAR_ARCHIVE},
+	{&ogc_pingpredict, "pingpredict", "0", CVAR_ARCHIVE},
+	{&ogc_wall, "wall", "0", CVAR_ARCHIVE},
+	{&ogc_shoot, "shoot", "0", CVAR_ARCHIVE},
+	{&ogc_weapons, "weapons", "0", CVAR_ARCHIVE},
 };
 
 static int  cvarTableSize = sizeof( cvarTable ) / sizeof( cvarTable[0] );

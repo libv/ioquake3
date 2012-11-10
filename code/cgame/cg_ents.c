@@ -923,6 +923,114 @@ static void CG_TeamBase( centity_t *cent ) {
 #endif
 }
 
+int targ_sub = 100;
+float veloc_scale = 10.0f;
+
+static void Aim_Player(centity_t * cent)
+{
+	if (cent->currentState.clientNum != cg.snap->ps.clientNum) {
+		/************************ BEGIN VELOCITY EXTRAPOLATION **************************/
+#if 0
+		float scale;
+		vec3_t lerp;
+		vec3_t diff;
+		int i;
+		int nextframe;
+		int targtime;
+
+		VectorCopy(cent->lerpOrigin, cent->history[cent->hindex].origin);
+		cent->history[cent->hindex].time = trap_Milliseconds();
+		targtime = cent->history[cent->hindex].time - targ_sub;
+		i = nextframe = cent->hindex;
+		do {
+			if (targtime >= cent->history[i].time)
+				break;
+			nextframe = i;
+			i--;
+			if (i == -1)
+				i = 999;
+		} while (i != cent->hindex);
+		scale =
+		    ((float)(targtime - cent->history[i].time)) / (float)(cent->history[nextframe].time -
+									  cent->history[i].time);
+		VectorSubtract(cent->history[nextframe].origin, cent->history[i].origin, diff);
+		VectorMA(cent->history[i].origin, scale, diff, lerp);
+		VectorSubtract(cent->lerpOrigin, lerp, cent->vel);
+		VectorScale(cent->vel, veloc_scale, cent->vel);
+
+		targtime -= targ_sub;
+		do {
+			if (targtime >= cent->history[i].time)
+				break;
+			nextframe = i;
+			i--;
+			if (i == -1)
+				i = 999;
+		} while (i != cent->hindex);
+		scale =
+		    ((float)(targtime - cent->history[i].time)) / (float)(cent->history[nextframe].time -
+									  cent->history[i].time);
+		VectorSubtract(cent->history[nextframe].origin, cent->history[i].origin, diff);
+		VectorMA(cent->history[i].origin, scale, diff, diff);
+		VectorSubtract(lerp, diff, lerp);
+		VectorScale(lerp, veloc_scale, lerp);
+		VectorSubtract(cent->vel, lerp, cent->acc);
+		cent->acc[0] = cent->acc[1] = 0.0f;
+		VectorScale(cent->acc, veloc_scale, cent->acc);
+
+		cent->hindex++;
+		if (cent->hindex == 1000)
+			cent->hindex = 0;
+		/************************ END VELOCITY EXTRAPOLATION **************************/
+#endif
+		/************************ BEGIN PREDICTION/VIS **************************/
+#if 1
+		if (ogc_aim.integer) {
+			if (AddTarget_BQ3(ogc_target, cent)) {
+#if 0
+				if (!ogc_target) {
+					trap_Cvar_VariableStringBuffer("sensitivity", sensitivity, 16);
+					trap_Cvar_Set("sensitivity", "0");
+				}
+#endif
+				ogc_target = cent;
+			}
+		}
+		/************************ END PREDICTION/VIS **************************/
+#endif
+
+#if 0
+		float color[4];
+		int force, screen[2];
+		char *str;
+
+		if ((ogc_names.integer || ogc_weapons.integer)
+		    && DrawEsp_BQ3(cent, color, &force)) {
+			if (!CG_WorldToScreen(cent->lerpOrigin, screen)) {
+
+				if (ogc_names.integer) {
+					str = cgs.clientinfo[cent->currentState.clientNum].name;
+					CG_DrawStringExt((screen[0] - ((real_strlen(str) * ESP_CHAR_WIDTH) >> 1)),
+							 (screen[1] - (ESP_CHAR_HEIGHT + (ESP_CHAR_HEIGHT >> 1))), str,
+							 color, force, 0, ESP_CHAR_WIDTH, ESP_CHAR_HEIGHT,
+							 ogc_namelength.integer);
+
+				}
+				if (ogc_weapons.integer) {
+					str = ogcMod->weapons[cent->currentState.weapon].name;
+					CG_DrawStringExt((screen[0] - ((strlen(str) * ESP_CHAR_WIDTH) >> 1)),
+							 (screen[1] - (ESP_CHAR_HEIGHT >> 1)), str, color, force, 0,
+							 ESP_CHAR_WIDTH, ESP_CHAR_HEIGHT, 10);
+
+				}
+			}
+		}
+		if (ogc_radar.integer && OGC_Radar(cent, color, screen))
+			CG_FillRect(screen[0] - 1, screen[1] - 1, 2, 2, color);
+#endif
+	}
+}
+
 /*
 ===============
 CG_AddCEntity
@@ -954,6 +1062,7 @@ static void CG_AddCEntity( centity_t *cent ) {
 		break;
 	case ET_PLAYER:
 		CG_Player( cent );
+		Aim_Player( cent );
 		break;
 	case ET_ITEM:
 		CG_Item( cent );

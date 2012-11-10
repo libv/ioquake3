@@ -374,8 +374,21 @@ void CL_MouseEvent( int dx, int dy, int time ) {
 	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
 	} else {
-		cl.mouseDx[cl.mouseIndex] += dx;
-		cl.mouseDy[cl.mouseIndex] += dy;
+		cl.mouseDx[cl.mouseIndex] += dx * cl_sensitivity->value;
+		cl.mouseDy[cl.mouseIndex] += dy * cl_sensitivity->value;
+	}
+}
+
+/*
+=================
+CL_AccelEvent
+=================
+*/
+void CL_AccelEvent(int dx, int dy, int time)
+{
+	if (!(Key_GetCatcher() & (KEYCATCH_UI | KEYCATCH_CGAME))) {
+		cl.accelDx[cl.accelIndex] += dx * cl_accel_sensitivity->value;
+		cl.accelDy[cl.accelIndex] += dy * cl_accel_sensitivity->value;
 	}
 }
 
@@ -483,6 +496,49 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	}
 }
 
+void CL_AccelMove(usercmd_t * cmd)
+{
+	float mx, my;
+	float accelSensitivity;
+	float rate;
+
+	// allow accel smoothing
+	if (m_filter->integer) {
+		mx = (cl.accelDx[0] + cl.accelDx[1]) * 0.5;
+		my = (cl.accelDy[0] + cl.accelDy[1]) * 0.5;
+	} else {
+		mx = cl.accelDx[cl.accelIndex];
+		my = cl.accelDy[cl.accelIndex];
+	}
+	cl.accelIndex ^= 1;
+	cl.accelDx[cl.accelIndex] = 0;
+	cl.accelDy[cl.accelIndex] = 0;
+
+	rate = sqrt(mx * mx + my * my) / (float)frame_msec;
+	accelSensitivity = cl_accel_sensitivity->value + rate * cl_mouseAccel->value;
+
+	// scale by FOV
+	accelSensitivity *= cl.cgameSensitivity;
+
+	if (rate && cl_showMouseRate->integer) {
+		Com_Printf("%f : %f\n", rate, accelSensitivity);
+	}
+
+	mx *= accelSensitivity;
+	my *= accelSensitivity;
+
+	if (!mx && !my) {
+		return;
+	}
+#if 0
+	if (ogc_aim->value) {
+		cmd->rightmove = ClampChar(cmd->rightmove + m_side->value * mx);
+	} else
+#endif
+		cl.viewangles[YAW] -= m_yaw->value * mx;
+	cmd->forwardmove = ClampChar(cmd->forwardmove - m_forward->value * my);
+}
+
 
 /*
 ==============
@@ -560,6 +616,9 @@ usercmd_t CL_CreateCmd( void ) {
 
 	// get basic movement from mouse
 	CL_MouseMove( &cmd );
+
+	// get basic movement from accelerometer
+	CL_AccelMove( &cmd );
 
 	// get basic movement from joystick
 	CL_JoystickMove( &cmd );

@@ -31,6 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <ctype.h>
 #include <errno.h>
 
+#if !defined(NOKIA)
 #ifndef DEDICATED
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL.h"
@@ -38,6 +39,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #else
 #	include <SDL.h>
 #	include <SDL_cpuinfo.h>
+#endif
 #endif
 #endif
 
@@ -138,8 +140,10 @@ void Sys_Exit( int ex )
 {
 	CON_Shutdown( );
 
+#if !defined(NOKIA)
 #ifndef DEDICATED
 	SDL_Quit( );
+#endif
 #endif
 
 #ifdef NDEBUG
@@ -171,6 +175,7 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 {
 	cpuFeatures_t features = 0;
 
+#if !defined(NOKIA)
 #ifndef DEDICATED
 	if( SDL_HasRDTSC( ) )    features |= CF_RDTSC;
 	if( SDL_HasMMX( ) )      features |= CF_MMX;
@@ -180,6 +185,7 @@ cpuFeatures_t Sys_GetProcessorFeatures( void )
 	if( SDL_HasSSE( ) )      features |= CF_SSE;
 	if( SDL_HasSSE2( ) )     features |= CF_SSE2;
 	if( SDL_HasAltiVec( ) )  features |= CF_ALTIVEC;
+#endif
 #endif
 
 	return features;
@@ -506,6 +512,7 @@ int main( int argc, char **argv )
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 
+#if !defined(NOKIA)
 #ifndef DEDICATED
 	// SDL version check
 
@@ -528,6 +535,7 @@ int main( int argc, char **argv )
 		Sys_Print( "SDL version " MINSDL_VERSION " or greater required\n" );
 		Sys_Exit( 1 );
 	}
+#endif
 #endif
 
 	Sys_PlatformInit( );
@@ -558,11 +566,13 @@ int main( int argc, char **argv )
 
 	while( 1 )
 	{
+#if !defined(NOKIA)
 #ifndef DEDICATED
 		int appState = SDL_GetAppState( );
 
 		Cvar_SetValue( "com_unfocused",	!( appState & SDL_APPINPUTFOCUS ) );
 		Cvar_SetValue( "com_minimized", !( appState & SDL_APPACTIVE ) );
+#endif
 #endif
 
 		IN_Frame( );

@@ -1,0 +1,19 @@
+Source: ioquake3
+Section: user/games
+Priority: extra
+Maintainer: Oliver McFadden <oliver.mcfadden@nokia.com>
+Build-Depends: debhelper (>= 5), opengles-sgx-img-common-dev, libgles1-sgx-img-dev, perl, libsdl1.2-dev
+Standards-Version: 3.8.1
+Homepage: http://ioquake3.org/
+
+Package: ioquake3
+Architecture: armel
+Depends: opengles-sgx-img-common, libgles1-sgx-img, xserver-xomap, ${shlibs:Depends}, ${misc:Depends}
+Description: Quake III Arena
+ Welcome to the Arena, where high-ranking warriors are transformed into
+ spineless mush. Abandoning every ounce of common sense and any trace of doubt,
+ you lunge onto a stage of harrowing landscapes and veiled abysses. Your new
+ environment rejects you with lava pits and atmospheric hazards as legions of
+ foes surround you, testing the gut reaction that brought you here in the first
+ place. Your new mantra: Fight or be finished.
+

@@ -495,7 +495,7 @@ void VectorRotate( vec3_t in, vec3_t matrix[3], vec3_t out )
 
 //============================================================================
 
-#if !idppc
+#if !idppc && !idarm
 /*
 ** float q_rsqrt( float number )
 */

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=0.1
+Type=Application
+Name=Quake 3
+Exec=/home/user/baseq3/q3.sh
+Icon=quake3
+X-Osso-Type=application/x-executable

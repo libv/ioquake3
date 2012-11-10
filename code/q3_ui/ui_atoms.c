@@ -873,7 +873,7 @@ void UI_MouseEvent( int dx, int dy )
 {
 	int				i;
 	menucommon_s*	m;
-
+	//printf(__FILE__ " UI_MouseEvent(%d,%d)\n", dx, dy);
 	if (!uis.activemenu)
 		return;
 

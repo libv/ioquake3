@@ -412,6 +412,9 @@ CL_CgameSystemCalls
 The cgame module is making a system call
 ====================
 */
+
+qboolean IN_MotionPressed( void );
+
 intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	switch( args[0] ) {
 	case CG_PRINT:
@@ -696,6 +699,15 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return re.GetEntityToken( VMA(1), args[2] );
 	case CG_R_INPVS:
 		return re.inPVS( VMA(1), VMA(2) );
+
+	case CG_AIM_EVENT:
+		//CL_MouseEvent(args[1], args[2], args[3]);
+		cl.viewangles[YAW] += args[1];
+		cl.viewangles[PITCH] += args[2];
+		return 0;
+
+	case CG_IN_MOTION_PRESSED:
+		return IN_MotionPressed();
 
 	default:
 	        assert(0);

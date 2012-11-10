@@ -1839,8 +1839,13 @@ void RE_LoadWorldMap( const char *name ) {
 
 	i = LittleLong (header->version);
 	if ( i != BSP_VERSION ) {
+#if !defined(NOKIA)
 		ri.Error (ERR_DROP, "RE_LoadWorldMap: %s has wrong version number (%i should be %i)", 
 			name, i, BSP_VERSION);
+#else
+		ri.Printf(PRINT_WARNING, "RE_LoadWorldMap: %s has wrong version number (%i should be %i)",
+			  name, i, BSP_VERSION);
+#endif
 	}
 
 	// swap all the lumps

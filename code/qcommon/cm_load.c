@@ -627,8 +627,13 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	}
 
 	if ( header.version != BSP_VERSION ) {
-		Com_Error (ERR_DROP, "CM_LoadMap: %s has wrong version number (%i should be %i)"
-		, name, header.version, BSP_VERSION );
+#if !defined(NOKIA)
+		Com_Error (ERR_DROP, "CM_LoadMap: %s has wrong version number (%i should be %i)",
+			   name, header.version, BSP_VERSION);
+#else
+		Com_Printf  ("CM_LoadMap: %s has wrong version number (%i should be %i)", name,
+			    header.version, BSP_VERSION);
+#endif
 	}
 
 	cmod_base = (byte *)buf.i;

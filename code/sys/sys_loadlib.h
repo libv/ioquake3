@@ -20,6 +20,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ===========================================================================
 */
 
+#if !defined(NOKIA)
 #ifdef DEDICATED
 #	ifdef _WIN32
 #		include <windows.h>
@@ -46,4 +47,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #	define Sys_UnloadLibrary(h) SDL_UnloadObject(h)
 #	define Sys_LoadFunction(h,fn) SDL_LoadFunction(h,fn)
 #	define Sys_LibraryError() SDL_GetError()
+#endif
+#else
+#include <dlfcn.h>
+#define Sys_LoadLibrary(f) dlopen(f,RTLD_NOW)
+#define Sys_UnloadLibrary(h) dlclose(h)
+#define Sys_LoadFunction(h,fn) dlsym(h,fn)
+#define Sys_LibraryError() dlerror()
 #endif

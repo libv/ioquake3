@@ -182,7 +182,10 @@ typedef enum {
 	CG_CEIL,
 	CG_TESTPRINTINT,
 	CG_TESTPRINTFLOAT,
-	CG_ACOS
+	CG_ACOS,
+
+	CG_AIM_EVENT,
+	CG_IN_MOTION_PRESSED,
 } cgameImport_t;
 
 

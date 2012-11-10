@@ -156,6 +156,7 @@ SDIR=$(MOUNT_DIR)/server
 RDIR=$(MOUNT_DIR)/renderer
 CMDIR=$(MOUNT_DIR)/qcommon
 SDLDIR=$(MOUNT_DIR)/sdl
+EGLDIR=$(MOUNT_DIR)/egl
 ASMDIR=$(MOUNT_DIR)/asm
 SYSDIR=$(MOUNT_DIR)/sys
 GDIR=$(MOUNT_DIR)/game
@@ -199,21 +200,21 @@ endif
 # version info
 VERSION=1.36
 
-USE_SVN=
-ifeq ($(wildcard .svn),.svn)
-  SVN_REV=$(shell LANG=C svnversion .)
-  ifneq ($(SVN_REV),)
-    VERSION:=$(VERSION)_SVN$(SVN_REV)
-    USE_SVN=1
-  endif
-else
-ifeq ($(wildcard .git/svn/.metadata),.git/svn/.metadata)
-  SVN_REV=$(shell LANG=C git svn info | awk '$$1 == "Revision:" {print $$2; exit 0}')
-  ifneq ($(SVN_REV),)
-    VERSION:=$(VERSION)_SVN$(SVN_REV)
-  endif
-endif
-endif
+#USE_SVN=
+#ifeq ($(wildcard .svn),.svn)
+#  SVN_REV=$(shell LANG=C svnversion .)
+#  ifneq ($(SVN_REV),)
+#    VERSION:=$(VERSION)_SVN$(SVN_REV)
+#    USE_SVN=1
+#  endif
+#else
+#ifeq ($(wildcard .git/svn/.metadata),.git/svn/.metadata)
+#  SVN_REV=$(shell LANG=C git svn info | awk '$$1 == "Revision:" {print $$2; exit 0}')
+#  ifneq ($(SVN_REV),)
+#    VERSION:=$(VERSION)_SVN$(SVN_REV)
+#  endif
+#endif
+#endif
 
 
 #############################################################################
@@ -225,6 +226,7 @@ LIB=lib
 
 INSTALL=install
 MKDIR=mkdir
+PERL=perl
 
 ifeq ($(PLATFORM),linux)
 
@@ -292,6 +294,10 @@ ifeq ($(PLATFORM),linux)
     OPTIMIZE += -mtune=ultrasparc3 -mv8plus
     HAVE_VM_COMPILED=true
   endif
+  ifeq ($(ARCH),arm)
+    BASE_CFLAGS += -DNOKIA
+    OPTIMIZE += -ffast-math -march=armv7-a -mcpu=cortex-a8 -mfpu=neon #-mthumb
+  endif
   endif
   endif
 
@@ -306,7 +312,8 @@ ifeq ($(PLATFORM),linux)
   THREAD_LIBS=-lpthread
   LIBS=-ldl -lm
 
-  CLIENT_LIBS=$(SDL_LIBS) -lGL
+  BASE_CFLAGS += -I/usr/include/EGL/ -I/usr/include/GLES/
+  CLIENT_LIBS=$(SDL_LIBS) -lGLES_CM -lX11
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -872,6 +879,11 @@ echo_cmd=@echo
 Q=@
 endif
 
+define DO_PERL
+$(echo_cmd) "PERL $@"
+$(Q)$(PERL) $< > $@
+endef
+
 define DO_CC
 $(echo_cmd) "CC $<"
 $(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) -o $@ -c $<
@@ -1375,11 +1387,7 @@ Q3OBJ = \
   $(B)/client/tr_surface.o \
   $(B)/client/tr_world.o \
   \
-  $(B)/client/sdl_gamma.o \
-  $(B)/client/sdl_input.o \
-  $(B)/client/sdl_snd.o \
-  \
-  $(B)/client/con_passive.o \
+  $(B)/client/con_tty.o \
   $(B)/client/con_log.o \
   $(B)/client/sys_main.o
 
@@ -1481,10 +1489,12 @@ ifeq ($(USE_MUMBLE),1)
 endif
 
 Q3POBJ += \
-  $(B)/client/sdl_glimp.o
+  $(B)/client/egl_glimp.o \
+  $(B)/client/egl_input.o \
+  $(B)/client/sdl_snd.o
 
 Q3POBJ_SMP += \
-  $(B)/clientsmp/sdl_glimp.o
+  $(Q3POBJ)
 
 $(B)/ioquake3.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
@@ -1659,6 +1669,9 @@ Q3CGOBJ_ = \
   $(B)/baseq3/cgame/cg_snapshot.o \
   $(B)/baseq3/cgame/cg_view.o \
   $(B)/baseq3/cgame/cg_weapons.o \
+  \
+  $(B)/baseq3/cgame/mod_baseq3.o \
+  $(B)/baseq3/cgame/ogc_util.o \
   \
   $(B)/baseq3/qcommon/q_math.o \
   $(B)/baseq3/qcommon/q_shared.o
@@ -1934,19 +1947,25 @@ $(B)/client/%.o: $(CMDIR)/%.c
 $(B)/client/%.o: $(BLIBDIR)/%.c
 	$(DO_BOT_CC)
 
-$(B)/client/%.o: $(JPDIR)/%.c
+$(B)/client/%.o: $(JPDIR)/%.c $(EGLDIR)/qgl.h
 	$(DO_CC)
 
 $(B)/client/%.o: $(SPEEXDIR)/%.c
 	$(DO_CC)
 
-$(B)/client/%.o: $(RDIR)/%.c
+$(B)/client/%.o: $(RDIR)/%.c $(EGLDIR)/qgl.h
 	$(DO_CC)
 
 $(B)/client/%.o: $(SDLDIR)/%.c
 	$(DO_CC)
 
 $(B)/clientsmp/%.o: $(SDLDIR)/%.c
+	$(DO_SMP_CC)
+
+$(B)/client/%.o: $(EGLDIR)/%.c
+	$(DO_CC)
+
+$(B)/clientsmp/%.o: $(EGLDIR)/%.c
 	$(DO_SMP_CC)
 
 $(B)/client/%.o: $(SYSDIR)/%.c
@@ -1984,6 +2003,11 @@ ifeq ($(USE_SVN),1)
   $(B)/ded/common.o : .svn/entries
 endif
 
+$(EGLDIR)/qgl.h: $(EGLDIR)/GenerateQGL.pl
+	$(DO_PERL)
+
+$(B)/client/%.o: $(EGLDIR)/%.c
+	$(DO_CC)
 
 #############################################################################
 ## GAME MODULE RULES

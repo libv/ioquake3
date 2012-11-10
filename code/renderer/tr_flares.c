@@ -253,6 +253,8 @@ FLARE BACK END
 ===============================================================================
 */
 
+#if !defined(NOKIA)
+
 /*
 ==================
 RB_TestFlare
@@ -510,7 +512,7 @@ void RB_RenderFlares (void) {
 	qglMatrixMode( GL_PROJECTION );
 	qglPushMatrix();
     qglLoadIdentity();
-	qglOrtho( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
+	qglOrthof( backEnd.viewParms.viewportX, backEnd.viewParms.viewportX + backEnd.viewParms.viewportWidth,
 			  backEnd.viewParms.viewportY, backEnd.viewParms.viewportY + backEnd.viewParms.viewportHeight,
 			  -99999, 99999 );
 
@@ -527,3 +529,8 @@ void RB_RenderFlares (void) {
 	qglPopMatrix();
 }
 
+#else
+void RB_RenderFlares(void)
+{
+}
+#endif

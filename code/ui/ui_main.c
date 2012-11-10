@@ -5194,6 +5194,7 @@ UI_MouseEvent
 */
 void _UI_MouseEvent( int dx, int dy )
 {
+	//printf(__FILE__ "_UI_MouseEvent(%d,%d)\n", dx, dy);
 	// update mouse screen position
 	uiInfo.uiDC.cursorx += dx;
 	if (uiInfo.uiDC.cursorx < 0)

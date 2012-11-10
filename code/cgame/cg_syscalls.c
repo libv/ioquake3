@@ -208,6 +208,9 @@ void	trap_S_StopLoopingSound( int entityNum ) {
 }
 
 void	trap_S_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
+	if (ogc_aim.integer) {
+		VectorCopy(origin, cg_entities[entityNum].lerpOrigin);
+	}
 	syscall( CG_S_UPDATEENTITYPOSITION, entityNum, origin );
 }
 
@@ -251,8 +254,18 @@ void	trap_R_ClearScene( void ) {
 	syscall( CG_R_CLEARSCENE );
 }
 
-void	trap_R_AddRefEntityToScene( const refEntity_t *re ) {
-	syscall( CG_R_ADDREFENTITYTOSCENE, re );
+void trap_R_AddRefEntityToScene(const refEntity_t * re) {
+	refEntity_t *r = (refEntity_t *) re;
+
+	if (ogc_nofx.integer && re->reType == RT_SPRITE)
+		return;
+	if (ogc_wall.integer && !(re->renderfx & RF_DEPTHHACK)) {
+		r->renderfx |= RF_DEPTHHACK;
+		syscall(CG_R_ADDREFENTITYTOSCENE, re);
+		r->renderfx &= ~RF_DEPTHHACK;
+	} else {
+		syscall(CG_R_ADDREFENTITYTOSCENE, re);
+	}
 }
 
 void	trap_R_AddPolyToScene( qhandle_t hShader , int numVerts, const polyVert_t *verts ) {
@@ -442,4 +455,12 @@ qboolean trap_GetEntityToken( char *buffer, int bufferSize ) {
 
 qboolean trap_R_inPVS( const vec3_t p1, const vec3_t p2 ) {
 	return syscall( CG_R_INPVS, p1, p2 );
+}
+
+void trap_MouseEvent(int dx, int dy, int time) {
+	syscall(CG_AIM_EVENT, dx, dy, time);
+}
+
+qboolean trap_MotionPressed(void) {
+	return syscall(CG_IN_MOTION_PRESSED);
 }
