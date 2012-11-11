@@ -453,7 +453,9 @@ static void Accelerometer_HandleEvents(void)
 	if (accel_jump->value) {
 		float mag = sqrtf(y*y+z*z);
 		// HACK - change the sign of jump to be +ve not -ve
-		int looks_like_a_jump = (mag > -accel_jump->value) && (z < accel_jump->value / 2.0f);
+		// HACK - z<0 means that lots of jerks will look like jumps
+		//        change it to < -500 or < accel_jump->value/2
+		int looks_like_a_jump = (mag > -accel_jump->value) && (z < 0);
 		if (!jumpTime && looks_like_a_jump) {
 			Com_QueueEvent(t, SE_KEY, K_SPACE, qtrue, 0, NULL);
 			jumpTime = t;
@@ -473,6 +475,9 @@ static void Accelerometer_HandleEvents(void)
 	else if (y < -accel_epsilon_y->integer)
 		dy = -(y + accel_epsilon_y->integer);
 
+	dx *= cl_sensitivity->value;
+	dy *= cl_sensitivity->value;
+
 	Com_QueueEvent(t, SE_ACCEL, dx, dy, 0, NULL);
 }
 
@@ -488,8 +493,7 @@ static void HandleEvents(void)
 	int key;
 	XEvent event;
 	char *p;
-	static int x = 0, y = 0;	// absolute
-	int dx = 0, dy = 0;	// delta (new-old)
+	static int dx = 0, dy = 0;
 	int t = 0;		// default to 0 in case we don't set
 
 	if (!dpy)
@@ -531,32 +535,8 @@ static void HandleEvents(void)
 
 		case MotionNotify:
 			t = Sys_XTimeToSysTime(event.xkey.time);
-
 			dx = event.xmotion.x;
 			dy = event.xmotion.y;
-
-			if (!(Key_GetCatcher() & KEYCATCH_CGAME)) {
-			  dx -= (glConfig.vidWidth - SCREEN_WIDTH) / 2;
-			  dy -= (glConfig.vidHeight - SCREEN_HEIGHT) / 2;
-			}
-
-			dx -= x;
-			dy -= y;
-
-#if 0
-			Com_Printf ("KeyCatcher: %d\n", Key_GetCatcher());
-
-			Com_Printf ("MotionNotify: event.xmotion = (%d, %d) delta = (%d, %d)\n",
-				    event.xmotion.x, event.xmotion.y,
-				    dx, dy);
-#endif
-
-			x = event.xmotion.x;
-			y = event.xmotion.y;
-			if (!(Key_GetCatcher() & KEYCATCH_CGAME)) {
-			  x -= (glConfig.vidWidth - SCREEN_WIDTH) / 2;
-			  y -= (glConfig.vidHeight - SCREEN_HEIGHT) / 2;
-			}
 			break;
 
 		case ButtonPress:

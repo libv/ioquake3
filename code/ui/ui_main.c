@@ -5196,18 +5196,19 @@ void _UI_MouseEvent( int dx, int dy )
 {
 	//printf(__FILE__ "_UI_MouseEvent(%d,%d)\n", dx, dy);
 	// update mouse screen position
-	uiInfo.uiDC.cursorx += dx;
+	uiInfo.uiDC.cursorx = dx;
 	if (uiInfo.uiDC.cursorx < 0)
 		uiInfo.uiDC.cursorx = 0;
 	else if (uiInfo.uiDC.cursorx > SCREEN_WIDTH)
 		uiInfo.uiDC.cursorx = SCREEN_WIDTH;
 
-	uiInfo.uiDC.cursory += dy;
+	uiInfo.uiDC.cursory = dy;
 	if (uiInfo.uiDC.cursory < 0)
 		uiInfo.uiDC.cursory = 0;
 	else if (uiInfo.uiDC.cursory > SCREEN_HEIGHT)
 		uiInfo.uiDC.cursory = SCREEN_HEIGHT;
 
+__android_log_print(ANDROID_LOG_DEBUG, "Quake_NATIVE", "_UI_MouseEvent cursorxx=%d cursory=%d\n", uiInfo.uiDC.cursorx, uiInfo.uiDC.cursory);
   if (Menu_Count() > 0) {
     //menuDef_t *menu = Menu_GetFocused();
     //Menu_HandleMouseMove(menu, uiInfo.uiDC.cursorx, uiInfo.uiDC.cursory);

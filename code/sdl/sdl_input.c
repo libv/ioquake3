@@ -898,6 +898,7 @@ static void IN_ProcessEvents( void )
 				break;
 
 			case SDL_QUIT:
+				LOGI("__func__");
 				Sys_Quit( );
 				break;
 

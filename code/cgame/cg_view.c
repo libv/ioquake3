@@ -752,7 +752,7 @@ static void CG_PlayBufferedSounds( void ) {
 
 //=========================================================================
 
-static void OCG_ScanForCrosshairEntity(void)
+static void CG_ScanForCrosshairEntity(void)
 {
 	trace_t trace;
 	vec3_t end;
@@ -786,7 +786,7 @@ void OGC_DoBunnyHop(void)
 	}
 }
 
-qboolean OGC_IsDead(centity_t * ent)
+static qboolean OGC_IsDead(centity_t * ent)
 {
 	return (qboolean) (ent->currentState.eFlags & EF_DEAD);
 }
@@ -849,7 +849,7 @@ void OGC_DrawActiveFrame(void)
 	vec4_t black = { 0.0f, 0.0f, 0.0f, 0.5f };
 #endif
 
-	OCG_ScanForCrosshairEntity();
+	CG_ScanForCrosshairEntity();
 	OGC_DoAutoshoot();
 	OGC_DoBunnyHop();
 	OGC_DoAimbot();

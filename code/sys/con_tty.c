@@ -30,6 +30,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <fcntl.h>
 #include <sys/time.h>
 
+#include <android/log.h>
+
 /*
 =============================================================
 tty console routines
@@ -452,10 +454,13 @@ void CON_Print( const char *msg )
 {
 	CON_Hide( );
 
+        __android_log_print(ANDROID_LOG_DEBUG, "Quake_DEBUG", "%s", msg);
+#if 0
 	if( com_ansiColor && com_ansiColor->integer )
 		Sys_AnsiColorPrint( msg );
 	else
 		fputs( msg, stderr );
+#endif
 
 	CON_Show( );
 }

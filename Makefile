@@ -151,6 +151,7 @@ endif
 
 BD=$(BUILD_DIR)/debug-$(PLATFORM)-$(ARCH)
 BR=$(BUILD_DIR)/release-$(PLATFORM)-$(ARCH)
+ANDROIDDIR=$(MOUNT_DIR)/android
 CDIR=$(MOUNT_DIR)/client
 SDIR=$(MOUNT_DIR)/server
 RDIR=$(MOUNT_DIR)/renderer
@@ -186,14 +187,14 @@ ifeq ($(shell which pkg-config > /dev/null; echo $$?),0)
   OPENAL_CFLAGS=$(shell pkg-config --cflags openal)
   OPENAL_LIBS=$(shell pkg-config --libs openal)
   # FIXME: introduce CLIENT_CFLAGS
-  SDL_CFLAGS=$(shell pkg-config --cflags sdl|sed 's/-Dmain=SDL_main//')
-  SDL_LIBS=$(shell pkg-config --libs sdl)
+  #SDL_CFLAGS=$(shell pkg-config --cflags sdl|sed 's/-Dmain=SDL_main//')
+  #SDL_LIBS=$(shell pkg-config --libs sdl)
 endif
 # Use sdl-config if all else fails
 ifeq ($(SDL_CFLAGS),)
   ifeq ($(shell which sdl-config > /dev/null; echo $$?),0)
-    SDL_CFLAGS=$(shell sdl-config --cflags)
-    SDL_LIBS=$(shell sdl-config --libs)
+    #SDL_CFLAGS=$(shell sdl-config --cflags)
+    #SDL_LIBS=$(shell sdl-config --libs)
   endif
 endif
 
@@ -247,7 +248,7 @@ ifeq ($(PLATFORM),linux)
   endif
 
   BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -pipe -DUSE_ICON $(SDL_CFLAGS)
+    -pipe -DUSE_ICON
 
   ifeq ($(USE_OPENAL),1)
     BASE_CFLAGS += -DUSE_OPENAL
@@ -296,7 +297,6 @@ ifeq ($(PLATFORM),linux)
   endif
   ifeq ($(ARCH),arm)
     BASE_CFLAGS += -DNOKIA
-    OPTIMIZE += -ffast-math -march=armv7-a -mcpu=cortex-a8 -mfpu=neon #-mthumb
   endif
   endif
   endif
@@ -313,7 +313,7 @@ ifeq ($(PLATFORM),linux)
   LIBS=-ldl -lm
 
   BASE_CFLAGS += -I/usr/include/EGL/ -I/usr/include/GLES/
-  CLIENT_LIBS=$(SDL_LIBS) -lGLES_CM -lX11
+  CLIENT_LIBS=-lGLES_CM
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -812,9 +812,9 @@ endif
 
 ifneq ($(BUILD_GAME_SO),0)
   TARGETS += \
-    $(B)/baseq3/cgame$(ARCH).$(SHLIBEXT) \
-    $(B)/baseq3/qagame$(ARCH).$(SHLIBEXT) \
-    $(B)/baseq3/ui$(ARCH).$(SHLIBEXT)
+    $(B)/baseq3/libcgame$(ARCH).$(SHLIBEXT) \
+    $(B)/baseq3/libqagame$(ARCH).$(SHLIBEXT) \
+    $(B)/baseq3/libui$(ARCH).$(SHLIBEXT)
   ifneq ($(BUILD_MISSIONPACK),0)
     TARGETS += \
     $(B)/missionpack/cgame$(ARCH).$(SHLIBEXT) \
@@ -1489,18 +1489,16 @@ ifeq ($(USE_MUMBLE),1)
 endif
 
 Q3POBJ += \
-  $(B)/client/egl_glimp.o \
-  $(B)/client/egl_input.o \
-  $(B)/client/sdl_snd.o
+  $(B)/client/android_glimp.o \
+  $(B)/client/android_input.o \
+  $(B)/client/android_snd.o
 
 Q3POBJ_SMP += \
   $(Q3POBJ)
 
 $(B)/ioquake3.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
-		-o $@ $(Q3OBJ) $(Q3POBJ) \
-		$(LIBSDLMAIN) $(CLIENT_LIBS) $(LIBS)
+	$(CC) -shared -nostdlib -o $(B)/libquake3.so $(LDFLAGS) $(Q3OBJ) $(Q3POBJ) -lc $(LIBS) -lGLESv1_CM -lEGL -llog -lgcc -lui
 
 $(B)/ioquake3-smp.$(ARCH)$(BINEXT): $(Q3OBJ) $(Q3POBJ_SMP) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
@@ -1679,9 +1677,9 @@ Q3CGOBJ_ = \
 Q3CGOBJ = $(Q3CGOBJ_) $(B)/baseq3/cgame/cg_syscalls.o
 Q3CGVMOBJ = $(Q3CGOBJ_:%.o=%.asm)
 
-$(B)/baseq3/cgame$(ARCH).$(SHLIBEXT): $(Q3CGOBJ)
+$(B)/baseq3/libcgame$(ARCH).$(SHLIBEXT): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
+	$(Q)$(CC) $(CFLAGS) -nostdlib $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ) -lc -lm -lgcc
 
 $(B)/baseq3/vm/cgame.qvm: $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -1776,9 +1774,9 @@ Q3GOBJ_ = \
 Q3GOBJ = $(Q3GOBJ_) $(B)/baseq3/game/g_syscalls.o
 Q3GVMOBJ = $(Q3GOBJ_:%.o=%.asm)
 
-$(B)/baseq3/qagame$(ARCH).$(SHLIBEXT): $(Q3GOBJ)
+$(B)/baseq3/libqagame$(ARCH).$(SHLIBEXT): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
+	$(Q)$(CC) $(CFLAGS) -nostdlib $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ) -lc -lm -lgcc
 
 $(B)/baseq3/vm/qagame.qvm: $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -1890,9 +1888,9 @@ Q3UIOBJ_ = \
 Q3UIOBJ = $(Q3UIOBJ_) $(B)/missionpack/ui/ui_syscalls.o
 Q3UIVMOBJ = $(Q3UIOBJ_:%.o=%.asm)
 
-$(B)/baseq3/ui$(ARCH).$(SHLIBEXT): $(Q3UIOBJ)
+$(B)/baseq3/libui$(ARCH).$(SHLIBEXT): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
+	$(Q)$(CC) $(CFLAGS) -nostdlib $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ) -lc -lm -lgcc
 
 $(B)/baseq3/vm/ui.qvm: $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -1962,10 +1960,10 @@ $(B)/client/%.o: $(SDLDIR)/%.c
 $(B)/clientsmp/%.o: $(SDLDIR)/%.c
 	$(DO_SMP_CC)
 
-$(B)/client/%.o: $(EGLDIR)/%.c
+$(B)/client/%.o: $(ANDROIDDIR)/%.c
 	$(DO_CC)
 
-$(B)/clientsmp/%.o: $(EGLDIR)/%.c
+$(B)/clientsmp/%.o: $(ANDROIDDIR)/%.c
 	$(DO_SMP_CC)
 
 $(B)/client/%.o: $(SYSDIR)/%.c

@@ -115,6 +115,7 @@ typedef struct {
 	int			mouseIndex;
 	int			accelDx[2], accelDy[2];	// added to by accel events
 	int			accelIndex;
+	int			posnPx, posnPy;	// set by touchscreen events
 	int			joystickAxis[MAX_JOYSTICK_AXIS];	// set by joystick events
 
 	// cgame communicates a few values to the client system
@@ -378,7 +379,6 @@ extern	cvar_t	*cl_run;
 extern	cvar_t	*cl_anglespeedkey;
 
 extern	cvar_t	*cl_sensitivity;
-extern	cvar_t	*cl_accel_sensitivity;
 extern	cvar_t	*cl_freelook;
 
 extern	cvar_t	*cl_mouseAccel;

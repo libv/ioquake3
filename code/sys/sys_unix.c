@@ -50,14 +50,10 @@ char *Sys_DefaultHomePath(void)
 
 	if( !*homePath )
 	{
-		if( ( p = getenv( "HOME" ) ) != NULL )
+		if( ( p = getenv( "GAME_PATH" ) ) != NULL )
 		{
 			Q_strncpyz( homePath, p, sizeof( homePath ) );
-#ifdef MACOS_X
-			Q_strcat( homePath, sizeof( homePath ), "/Library/Application Support/Quake3" );
-#else
-			Q_strcat( homePath, sizeof( homePath ), "/.q3a" );
-#endif
+
 			if( mkdir( homePath, 0777 ) )
 			{
 				if( errno != EEXIST )
@@ -68,7 +64,6 @@ char *Sys_DefaultHomePath(void)
 			}
 		}
 	}
-
 	return homePath;
 }
 

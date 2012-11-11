@@ -2,6 +2,11 @@
 #include"cg_local.h"
 #include"engine.h"
 
+static qboolean OGC_IsDead(centity_t * ent)
+{
+	return (qboolean) (ent->currentState.eFlags & EF_DEAD);
+}
+
 static qboolean OGC_IsOnSameTeam(centity_t * ent)
 {
 	clientInfo_t *self = &cgs.clientinfo[cg.snap->ps.clientNum];

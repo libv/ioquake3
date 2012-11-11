@@ -49,6 +49,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#include <android/log.h>
+
 static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
 
@@ -162,6 +164,8 @@ Sys_Quit
 */
 void Sys_Quit( void )
 {
+	Com_Printf("%s\n", __func__);
+
 	CL_Shutdown( );
 	Sys_Exit( 0 );
 }
@@ -300,6 +304,7 @@ void Sys_Error( const char *error, ... )
 	va_end (argptr);
 
 	Sys_ErrorDialog( string );
+	Com_Printf("%s: %s\n", __func__, string);
 
 	Sys_Exit( 1 );
 }
@@ -406,7 +411,10 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 
 	assert( name );
 
-	Q_snprintf (fname, sizeof(fname), "%s" ARCH_STRING DLL_EXT, name);
+	/* On android libraries need to be prefixed with 'lib' else the loader
+	 * refuses to load them.
+	 */
+	Q_snprintf (fname, sizeof(fname), "lib%s" ARCH_STRING DLL_EXT, name);
 
 	// TODO: use fs_searchpaths from files.c
 	pwdpath = Sys_Cwd();
@@ -414,7 +422,11 @@ void *Sys_LoadDll( const char *name, char *fqpath ,
 	homepath = Cvar_VariableString( "fs_homepath" );
 	gamedir = Cvar_VariableString( "fs_game" );
 
-	libHandle = Sys_TryLibraryLoad(pwdpath, gamedir, fname, fqpath);
+	/* The libraries are shipped in the package directory and can't be loaded from
+	 * e.g. the sdcard because it seems to be mounted noexec or the loader just doesn't
+	 * allow it.
+	 */
+	libHandle = Sys_TryLibraryLoad(pwdpath, "/data/data/org.kwaak3/lib", fname, fqpath);
 
 	if(!libHandle && homepath)
 		libHandle = Sys_TryLibraryLoad(homepath, gamedir, fname, fqpath);
@@ -486,13 +498,13 @@ void Sys_SigHandler( int signal )
 
 	if( signalcaught )
 	{
-		fprintf( stderr, "DOUBLE SIGNAL FAULT: Received signal %d, exiting...\n",
+		Com_Printf("DOUBLE SIGNAL FAULT: Received signal %d, exiting...\n",
 			signal );
 	}
 	else
 	{
 		signalcaught = qtrue;
-		fprintf( stderr, "Received signal %d, exiting...\n", signal );
+		Com_Printf("Received signal %d, exiting...\n", signal );
 #ifndef DEDICATED
 		CL_Shutdown();
 #endif
@@ -512,31 +524,7 @@ int main( int argc, char **argv )
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
 
-#if !defined(NOKIA)
-#ifndef DEDICATED
-	// SDL version check
-
-	// Compile time
-#	if !SDL_VERSION_ATLEAST(MINSDL_MAJOR,MINSDL_MINOR,MINSDL_PATCH)
-#		error A more recent version of SDL is required
-#	endif
-
-	// Run time
-	const SDL_version *ver = SDL_Linked_Version( );
-
-#define MINSDL_VERSION \
-	XSTRING(MINSDL_MAJOR) "." \
-	XSTRING(MINSDL_MINOR) "." \
-	XSTRING(MINSDL_PATCH)
-
-	if( SDL_VERSIONNUM( ver->major, ver->minor, ver->patch ) <
-			SDL_VERSIONNUM( MINSDL_MAJOR, MINSDL_MINOR, MINSDL_PATCH ) )
-	{
-		Sys_Print( "SDL version " MINSDL_VERSION " or greater required\n" );
-		Sys_Exit( 1 );
-	}
-#endif
-#endif
+	Com_Printf("Quake: Inside Quake3 source too!");
 
 	Sys_PlatformInit( );
 
@@ -544,40 +532,34 @@ int main( int argc, char **argv )
 	Sys_Milliseconds( );
 
 	Sys_ParseArgs( argc, argv );
-	Sys_SetBinaryPath( Sys_Dirname( argv[ 0 ] ) );
+//	Sys_SetBinaryPath( Sys_Dirname( argv[ 0 ] ) );
 	Sys_SetDefaultInstallPath( DEFAULT_BASEDIR );
 
 	// Concatenate the command line for passing to Com_Init
-	for( i = 1; i < argc; i++ )
+	for( i = 0; i < argc; i++ )
 	{
 		Q_strcat( commandLine, sizeof( commandLine ), argv[ i ] );
 		Q_strcat( commandLine, sizeof( commandLine ), " " );
 	}
 
 	Com_Init( commandLine );
+	Com_Printf("Quake: NET_Init!");
 	NET_Init( );
 
+	Com_Printf("Quake: CON_Init!");
 	CON_Init( );
 
+	Com_Printf("Quake: Attaching signals!");
 	signal( SIGILL, Sys_SigHandler );
 	signal( SIGFPE, Sys_SigHandler );
-	signal( SIGSEGV, Sys_SigHandler );
+	//signal( SIGSEGV, Sys_SigHandler );
 	signal( SIGTERM, Sys_SigHandler );
 
-	while( 1 )
-	{
-#if !defined(NOKIA)
-#ifndef DEDICATED
-		int appState = SDL_GetAppState( );
-
-		Cvar_SetValue( "com_unfocused",	!( appState & SDL_APPINPUTFOCUS ) );
-		Cvar_SetValue( "com_minimized", !( appState & SDL_APPACTIVE ) );
-#endif
-#endif
-
-		IN_Frame( );
+	while(1) {
 		Com_Frame( );
 	}
+
+	Com_Printf("Quake: Exiting Quake3!");
 
 	return 0;
 }

@@ -311,6 +311,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		FS_PureServerSetLoadedPaks("", "");
 		longjmp (abortframe, -1);
 	} else {
+		Com_Printf("%s: %s\n", __func__, com_errorMessage);
 		CL_Shutdown ();
 		SV_Shutdown (va("Server fatal crashed: %s", com_errorMessage));
 	}
@@ -332,12 +333,16 @@ do the apropriate things.
 void Com_Quit_f( void ) {
 	// don't try to shutdown if we are in a recursive error
 	char *p = Cmd_Args( );
+
+	Com_Printf("%s\n", __func__);
+
 	if ( !com_errorEntered ) {
 		SV_Shutdown (p[0] ? p : "Server quit");
 		CL_Shutdown ();
 		Com_Shutdown ();
 		FS_Shutdown(qtrue);
 	}
+
 	Sys_Quit ();
 }
 
@@ -2620,6 +2625,8 @@ void Com_Init( char *commandLine ) {
 		Cmd_AddCommand ("crash", Com_Crash_f );
 		Cmd_AddCommand ("freeze", Com_Freeze_f);
 	}
+
+	Com_Printf("%s\n", __func__);
 	Cmd_AddCommand ("quit", Com_Quit_f);
 	Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
 	Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
@@ -2629,6 +2636,8 @@ void Com_Init( char *commandLine ) {
 	com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
 	Sys_Init();
+
+	Com_Printf("%s\n", __func__);
 
 	// Pick a random port value
 	Com_RandomBytes( (byte*)&qport, sizeof(int) );

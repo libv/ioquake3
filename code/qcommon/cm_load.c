@@ -585,7 +585,7 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	cm_noCurves = Cvar_Get ("cm_noCurves", "0", CVAR_CHEAT);
 	cm_playerCurveClip = Cvar_Get ("cm_playerCurveClip", "1", CVAR_ARCHIVE|CVAR_CHEAT );
 #endif
-	Com_DPrintf( "CM_LoadMap( %s, %i )\n", name, clientload );
+	Com_Printf( "CM_LoadMap( %s, %i )\n", name, clientload );
 
 	if ( !strcmp( cm.name, name ) && clientload ) {
 		*checksum = last_checksum;
@@ -627,13 +627,8 @@ void CM_LoadMap( const char *name, qboolean clientload, int *checksum ) {
 	}
 
 	if ( header.version != BSP_VERSION ) {
-#if !defined(NOKIA)
-		Com_Error (ERR_DROP, "CM_LoadMap: %s has wrong version number (%i should be %i)",
-			   name, header.version, BSP_VERSION);
-#else
-		Com_Printf  ("CM_LoadMap: %s has wrong version number (%i should be %i)", name,
-			    header.version, BSP_VERSION);
-#endif
+		Com_Error (ERR_DROP, "CM_LoadMap: %s has wrong version number (%i should be %i)"
+		, name, header.version, BSP_VERSION );
 	}
 
 	cmod_base = (byte *)buf.i;

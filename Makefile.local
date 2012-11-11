@@ -1,11 +1,23 @@
+COMPILE_ARCH=arm
+COMPILE_PLATFORM=linux
+TOOLCHAIN ?= ~/android/toolchain/
+SDK ?= ~/android/android-sdk-linux/
+ANDROID_TARGET ?= android-10
+CC = $(TOOLCHAIN)/bin/arm-linux-androideabi-gcc
+LD = $(TOOLCHAIN)/bin/arm-linux-androideabi-ld
+ANDROID_NDK_DIR=$(TOOLCHAIN)
+#CC=/home/roderick/android/arm-eabi-4.4.0/bin/arm-eabi-gcc
+ANDROID_CFLAGS=-mcpu=cortex-a8 -mfloat-abi=softfp -mfpu=neon -fpic -fno-short-enums -ffunction-sections -funwind-tables -fstack-protector -ftree-vectorize -fsingle-precision-constant
+#ANDROID_CFLAGS=-march=armv5te -mtune=xscale -msoft-float -fpic -mthumb-interwork -ffunction-sections -funwind-tables -fstack-protector -fno-short-enums -D__ARM_ARCH_5__ -D__ARM_ARCH_5T__  -D__ARM_ARCH_5E__ -D__ARM_ARCH_5TE__
+CFLAGS=$(ANDROID_CFLAGS) -I$(ANDROID_NDK_DIR)/build/platforms/android-4/arch-arm/usr/include -DANDROID -D__linux__ -D__MATH_NEON
+LDFLAGS=-nostdlib -L$(ANDROID_NDK_DIR)/build/platforms/android-4/arch-arm/usr/lib
 BUILD_CLIENT=1
 BUILD_CLIENT_SMP=0
 BUILD_GAME_QVM=0
-BUILD_GAME_SO=0
+BUILD_GAME_SO=1
 BUILD_MISSIONPACK=0
 BUILD_SERVER=0
 BUILD_STANDALONE=1
-DEFAULT_BASEDIR=/home/user
 GENERATE_DEPENDENCIES=0
 USE_CODEC_VORBIS=0
 USE_CURL=0
@@ -17,3 +29,4 @@ USE_OPENAL=0
 USE_OPENAL_DLOPEN=0
 USE_SVN=0
 USE_VOIP=0
+DEFAULT_BASEDIR=/data/data/org.kwaak3/data

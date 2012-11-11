@@ -791,12 +791,14 @@ qboolean UI_IsFullscreen( void ) {
 
 static void NeedCDAction( qboolean result ) {
 	if ( !result ) {
+		Com_Printf("%s\n", __func__);
 		trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
 	}
 }
 
 static void NeedCDKeyAction( qboolean result ) {
 	if ( !result ) {
+		Com_Printf("%s\n", __func__);
 		trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
 	}
 }
@@ -878,13 +880,13 @@ void UI_MouseEvent( int dx, int dy )
 		return;
 
 	// update mouse screen position
-	uis.cursorx += dx;
+	uis.cursorx = dx;
 	if (uis.cursorx < 0)
 		uis.cursorx = 0;
 	else if (uis.cursorx > SCREEN_WIDTH)
 		uis.cursorx = SCREEN_WIDTH;
 
-	uis.cursory += dy;
+	uis.cursory = dy;
 	if (uis.cursory < 0)
 		uis.cursory = 0;
 	else if (uis.cursory > SCREEN_HEIGHT)

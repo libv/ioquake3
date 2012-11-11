@@ -1705,13 +1705,13 @@ void CG_MouseEvent(int x, int y) {
 		return;
 	}
 
-	cgs.cursorX += x;
+	cgs.cursorX = x;
 	if (cgs.cursorX < 0)
 		cgs.cursorX = 0;
 	else if (cgs.cursorX > 640)
 		cgs.cursorX = 640;
 
-	cgs.cursorY += y;
+	cgs.cursorY = y;
 	if (cgs.cursorY < 0)
 		cgs.cursorY = 0;
 	else if (cgs.cursorY > 480)

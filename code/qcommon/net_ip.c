@@ -72,9 +72,20 @@ static qboolean	winsockInitialized = qfalse;
 #	include <sys/types.h>
 #	include <sys/time.h>
 #	include <unistd.h>
-#	if !defined(__sun) && !defined(__sgi)
+#	if !defined(ANDROID) && !defined(__sun) && !defined(__sgi)
 #		include <ifaddrs.h>
 #	endif
+
+	/* Old versions of the Android NDK had buggy ipv6 headers */
+	#if defined(ANDROID) && !defined(IN6ADDR_ANY_INIT)
+		#define IPV6_JOIN_GROUP IPV6_ADD_MEMBERSHIP
+		#define IPV6_LEAVE_GROUP IPV6_DROP_MEMBERSHIP
+		#define ipv6mr_interface ipv6mr_ifindex
+
+		#define IN6ADDR_ANY_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } }
+		static const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;
+		static const struct in6_addr in6addr_loopback = IN6ADDR_LOOPBACK_INIT;
+	#endif
 
 #	ifdef __sun
 #		include <sys/filio.h>
@@ -125,6 +136,7 @@ static SOCKET	multicast6_socket = INVALID_SOCKET;
 static struct ipv6_mreq curgroup;
 // And the currently bound address.
 static struct sockaddr_in6 boundto;
+
 
 #ifndef IF_NAMESIZE
   #define IF_NAMESIZE 16
@@ -1300,7 +1312,7 @@ void NET_AddLocalAddress(char *ifname, struct sockaddr *addr, struct sockaddr *n
 	}
 }
 
-#if defined(__linux__) || defined(MACOSX) || defined(__BSD__)
+#if (defined(__linux__) && !defined(ANDROID)) || defined(MACOSX) || defined(__BSD__)
 void NET_GetLocalAddress(void)
 {
 	struct ifaddrs *ifap, *search;

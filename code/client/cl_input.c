@@ -374,8 +374,11 @@ void CL_MouseEvent( int dx, int dy, int time ) {
 	} else if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
 	} else {
-		cl.mouseDx[cl.mouseIndex] += dx * cl_sensitivity->value;
-		cl.mouseDy[cl.mouseIndex] += dy * cl_sensitivity->value;
+		cl.mouseDx[cl.mouseIndex] += dx;
+		cl.mouseDy[cl.mouseIndex] += dy;
+//This was used on the n900
+//		cl.mouseDx[cl.mouseIndex] += (dx - cls.glconfig.vidWidth / 2) * cl_sensitivity->value;
+//		cl.mouseDy[cl.mouseIndex] += (dy - cls.glconfig.vidHeight / 2) * cl_sensitivity->value;
 	}
 }
 
@@ -387,8 +390,8 @@ CL_AccelEvent
 void CL_AccelEvent(int dx, int dy, int time)
 {
 	if (!(Key_GetCatcher() & (KEYCATCH_UI | KEYCATCH_CGAME))) {
-		cl.accelDx[cl.accelIndex] += dx * cl_accel_sensitivity->value;
-		cl.accelDy[cl.accelIndex] += dy * cl_accel_sensitivity->value;
+		cl.accelDx[cl.accelIndex] += dx;
+		cl.accelDy[cl.accelIndex] += dy;
 	}
 }
 
@@ -515,7 +518,7 @@ void CL_AccelMove(usercmd_t * cmd)
 	cl.accelDy[cl.accelIndex] = 0;
 
 	rate = sqrt(mx * mx + my * my) / (float)frame_msec;
-	accelSensitivity = cl_accel_sensitivity->value + rate * cl_mouseAccel->value;
+	accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
 
 	// scale by FOV
 	accelSensitivity *= cl.cgameSensitivity;

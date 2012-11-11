@@ -79,6 +79,7 @@ void UI_StartDemoLoop( void ) {
 #ifndef MISSIONPACK
 static void NeedCDAction( qboolean result ) {
 	if ( !result ) {
+		Com_Printf("%s\n", __func__);
 		trap_Cmd_ExecuteText( EXEC_APPEND, "quit\n" );
 	}
 }
