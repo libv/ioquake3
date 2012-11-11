@@ -3,28 +3,21 @@
 #include <stdlib.h>
 #include <sys/param.h>
 
-#include <X11/keysym.h>
-#include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-#include <GLES/egl.h>
+#include <EGL/egl.h>
 #include <GLES/gl.h>
 
+#include "../sys/sys_local.h"
+#include "../qcommon/q_shared.h"
 #include "egl_glimp.h"
 #include "../client/client.h"
 #include "../renderer/tr_local.h"
 
-Display *dpy = NULL;
-Window win = 0;
+#define FBDEV_WIDTH 1280
+#define FBDEV_HEIGHT 720
+
 EGLContext eglContext = NULL;
 EGLDisplay eglDisplay = NULL;
 EGLSurface eglSurface = NULL;
-
-int Sys_XTimeToSysTime(Time xtime)
-{
-	return Sys_Milliseconds();
-}
 
 static char *GLimp_StringErrors[] = {
 	"EGL_SUCCESS",
@@ -49,58 +42,24 @@ static void GLimp_HandleError(void)
 	GLint err = eglGetError();
 
 	fprintf(stderr, "%s: 0x%04x: %s\n", __func__, err,
-		GLimp_StringErrors[err]);
+		GLimp_StringErrors[err]); // Cannot work! -- libv
 	assert(0);
 }
-
-#define _NET_WM_STATE_REMOVE        0	/* remove/unset property */
-#define _NET_WM_STATE_ADD           1	/* add/set property */
-#define _NET_WM_STATE_TOGGLE        2	/* toggle property  */
-
-static void GLimp_DisableComposition(void)
-{
-	XClientMessageEvent xclient;
-	Atom atom;
-	int one = 1;
-
-	atom = XInternAtom(dpy, "_HILDON_NON_COMPOSITED_WINDOW", False);
-	XChangeProperty(dpy, win, atom, XA_INTEGER, 32, PropModeReplace,
-			(unsigned char *)&one, 1);
-
-	xclient.type = ClientMessage;
-	xclient.window = win;	//GDK_WINDOW_XID (window);
-	xclient.message_type = XInternAtom(dpy, "_NET_WM_STATE", False);
-	xclient.format = 32;
-	xclient.data.l[0] =
-	    r_fullscreen->integer ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
-	//gdk_x11_atom_to_xatom_for_display (display, state1);
-	//gdk_x11_atom_to_xatom_for_display (display, state2);
-	xclient.data.l[1] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	xclient.data.l[2] = 0;
-	xclient.data.l[3] = 0;
-	xclient.data.l[4] = 0;
-	XSendEvent(dpy, DefaultRootWindow(dpy), False,
-		   SubstructureRedirectMask | SubstructureNotifyMask,
-		   (XEvent *) & xclient);
-}
-
 
 #define MAX_NUM_CONFIGS 4
 
 /*
- * Create an RGB, double-buffered window.
+ * Create an RGB window.
  * Return the window and context handles.
  */
-static void make_window(Display * dpy, Screen * scr, EGLDisplay eglDisplay,
+static void make_window(EGLDisplay eglDisplay, int width, int height,
 			EGLSurface * winRet, EGLContext * ctxRet)
 {
 	EGLSurface eglSurface = EGL_NO_SURFACE;
 	EGLContext eglContext;
 	EGLConfig configs[MAX_NUM_CONFIGS];
 	EGLint config_count;
-	XWindowAttributes WinAttr;
-	int XResult = BadImplementation;
-	int blackColour = BlackPixel(dpy, DefaultScreen(dpy));
+	static struct mali_native_window window;
 	EGLint cfg_attribs[] = {
 		EGL_NATIVE_VISUAL_TYPE, 0,
 
@@ -119,22 +78,6 @@ static void make_window(Display * dpy, Screen * scr, EGLDisplay eglDisplay,
 	};
 	EGLint i;
 
-	win =
-	    XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), 0, 0, 1, 1, 0,
-				blackColour, blackColour);
-	XStoreName(dpy, win, WINDOW_CLASS_NAME);
-
-	XSelectInput(dpy, win, X_MASK);
-
-	if (!(XResult = XGetWindowAttributes(dpy, win, &WinAttr)))
-		GLimp_HandleError();
-
-	GLimp_DisableComposition();
-	XMapWindow(dpy, win);
-	GLimp_DisableComposition();
-
-	XFlush(dpy);
-
 	if (!eglGetConfigs(eglDisplay, configs, MAX_NUM_CONFIGS, &config_count))
 		GLimp_HandleError();
 
@@ -142,10 +85,13 @@ static void make_window(Display * dpy, Screen * scr, EGLDisplay eglDisplay,
 	    (eglDisplay, cfg_attribs, configs, MAX_NUM_CONFIGS, &config_count))
 		GLimp_HandleError();
 
+	window.width = width;
+	window.height = height;
+
 	for (i = 0; i < config_count; i++) {
 		if ((eglSurface =
 		     eglCreateWindowSurface(eglDisplay, configs[i],
-					    (NativeWindowType) win,
+					    (NativeWindowType) &window,
 					    NULL)) != EGL_NO_SURFACE)
 			break;
 	}
@@ -175,7 +121,7 @@ static qboolean GLimp_HaveExtension(const char *ext)
 
 static void qglMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 {
-qglMultiTexCoord4f(target,s,t,1,1);
+	qglMultiTexCoord4f(target,s,t,1,1);
 }
 
 
@@ -358,33 +304,21 @@ static void GLimp_InitExtensions( void )
 
 void GLimp_Init(void)
 {
-	Screen *screen;
-	Visual *vis;
 	EGLint major, minor;
 
 	ri.Printf(PRINT_ALL, "Initializing OpenGL subsystem\n");
 
 	bzero(&glConfig, sizeof(glConfig));
 
-	if (!(dpy = XOpenDisplay(NULL))) {
-		printf("Error: couldn't open display \n");
-		assert(0);
-	}
-	screen = XDefaultScreenOfDisplay(dpy);
-	vis = DefaultVisual(dpy, DefaultScreen(dpy));
-
-	eglDisplay = eglGetDisplay((NativeDisplayType) dpy);
+	eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	if (!eglInitialize(eglDisplay, &major, &minor))
 		GLimp_HandleError();
 
-	make_window(dpy, screen, eglDisplay, &eglSurface, &eglContext);
+	make_window(eglDisplay, FBDEV_WIDTH, FBDEV_HEIGHT, &eglSurface, &eglContext);
+	glConfig.isFullscreen = qtrue;
+	glConfig.vidWidth = FBDEV_WIDTH;
+	glConfig.vidHeight = FBDEV_HEIGHT;
 
-	XMoveResizeWindow(dpy, win, 0, 0, WidthOfScreen(screen),
-			  HeightOfScreen(screen));
-
-	glConfig.isFullscreen = r_fullscreen->integer;
-	glConfig.vidWidth = WidthOfScreen(screen);
-	glConfig.vidHeight = HeightOfScreen(screen);
 	glConfig.windowAspect = (float)glConfig.vidWidth / glConfig.vidHeight;
 	// FIXME
 	//glConfig.colorBits = 0
@@ -426,12 +360,7 @@ void GLimp_LogComment(char *comment)
 
 void GLimp_EndFrame(void)
 {
-	if (Q_stricmp(r_drawBuffer->string, "GL_FRONT") != 0) {
-		eglSwapBuffers(eglDisplay, eglSurface);
-	}
-
-	XForceScreenSaver(dpy, ScreenSaverReset);
-
+	eglSwapBuffers(eglDisplay, eglSurface);
 }
 
 void GLimp_Shutdown(void)
@@ -442,16 +371,9 @@ void GLimp_Shutdown(void)
 	eglDestroySurface(eglDisplay, eglSurface);
 	eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	eglTerminate(eglDisplay);
-
-	XDestroyWindow(dpy, win);
-	XCloseDisplay(dpy);
 }
 
 #if 1
-void qglArrayElement(GLint i)
-{
-}
-
 void qglCallList(GLuint list)
 {
 }

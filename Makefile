@@ -312,8 +312,7 @@ ifeq ($(PLATFORM),linux)
   THREAD_LIBS=-lpthread
   LIBS=-ldl -lm
 
-  BASE_CFLAGS += -I/usr/include/EGL/ -I/usr/include/GLES/
-  CLIENT_LIBS=$(SDL_LIBS) -lGLES_CM -lX11
+  CLIENT_LIBS=$(SDL_LIBS) -lGLESv1_CM
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
