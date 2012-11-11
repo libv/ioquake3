@@ -70,6 +70,20 @@ static inline void qglClipPlanef(GLenum plane, const GLfloat *equation)
 }
 
 // void glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+static inline void qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+    if (QGLLogGLCalls)
+        fprintf(QGLDebugFile(), "glColor4f(red=%f, green=%f, blue=%f, alpha=%f)\n",
+		red, green, blue, alpha);
+#endif
+    glColor4f(red, green, blue, alpha);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glColor4f");
+#endif
+}
+
 // void glDepthRangef (GLclampf zNear, GLclampf zFar);
 static inline void qglDepthRangef(GLclampf zNear, GLclampf zFar)
 {

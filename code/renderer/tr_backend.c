@@ -798,18 +798,18 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	RB_SetGL2D();
 
-	glColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
+	qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
 
 	verts[0][0] = x;  verts[0][1] = y;
 	verts[1][0] = x+w;  verts[1][1] = y;
 	verts[2][0] = x+w;  verts[2][1] = y+h;
 	verts[3][0] = x;  verts[3][1] = y+h;
-	
+
 	texcoords[0][0] = 0.5f/cols;      texcoords[0][1] = 0.5f/rows;
 	texcoords[1][0] = (cols-0.5f)/cols;   texcoords[1][1] = 0.5f/rows;
 	texcoords[2][0] = (cols-0.5f)/cols;   texcoords[2][1] = (rows-0.5f)/rows;
 	texcoords[3][0] = 0.5f/cols;      texcoords[3][1] = (rows-0.5f)/rows;
-	
+
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
 	qglTexCoordPointer( 2, GL_FLOAT, 0, texcoords );
 	qglVertexPointer  ( 2, GL_FLOAT, 0, verts );

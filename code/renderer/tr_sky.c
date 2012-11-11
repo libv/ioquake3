@@ -821,7 +821,7 @@ void RB_StageIteratorSky( void ) {
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
-		glColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
+		qglColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
 		
 		qglPushMatrix ();
 		GL_State( 0 );

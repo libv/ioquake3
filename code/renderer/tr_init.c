@@ -746,7 +746,7 @@ void GL_SetDefaultState( void )
 
 	qglCullFace(GL_FRONT);
 
-	glColor4f (1,1,1,1);
+	qglColor4f (1,1,1,1);
 
 	// initialize downstream texture unit if we're running
 	// in a multitexture environment

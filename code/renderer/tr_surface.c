@@ -325,7 +325,7 @@ static void RB_SurfaceBeam( void )
 
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 
-	glColor4f( 1, 0, 0, 1 );
+	qglColor4f( 1, 0, 0, 1 );
 
 	qglVertexPointer(3, GL_FLOAT, 0, points);
 	qglDrawArrays(GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS * 2);

@@ -101,7 +101,7 @@ Draws triangle outlines for debugging
 */
 static void DrawTris (shaderCommands_t *input) {
 	GL_Bind( tr.whiteImage );
-	glColor4f (1,1,1,1);
+	qglColor4f (1,1,1,1);
 
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 	qglDepthRangef( 0, 0 );
@@ -148,7 +148,7 @@ static void DrawNormals (shaderCommands_t *input) {
 	}
 
 	GL_Bind( tr.whiteImage );
-	glColor4f (1,1,1,1);
+	qglColor4f (1,1,1,1);
 	qglDepthRangef( 0, 0 );	// never occluded
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
