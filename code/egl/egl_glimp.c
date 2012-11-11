@@ -3,6 +3,13 @@
 #include <stdlib.h>
 #include <sys/param.h>
 
+/* for fbdev poking */
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <linux/fb.h>
+
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 
@@ -11,9 +18,6 @@
 #include "egl_glimp.h"
 #include "../client/client.h"
 #include "../renderer/tr_local.h"
-
-#define FBDEV_WIDTH 1280
-#define FBDEV_HEIGHT 720
 
 EGLContext eglContext = NULL;
 EGLDisplay eglDisplay = NULL;
@@ -44,6 +48,39 @@ static void GLimp_HandleError(void)
 	fprintf(stderr, "%s: 0x%04x: %s\n", __func__, err,
 		GLimp_StringErrors[err]); // Cannot work! -- libv
 	assert(0);
+}
+
+static void
+fbdev_size(int *width, int *height)
+{
+#define FBDEV_DEV "/dev/fb0"
+	int fd = open(FBDEV_DEV, O_RDWR);
+	struct fb_var_screeninfo info;
+
+	/* some lame defaults */
+	*width = 640;
+	*height = 480;
+
+	if (fd == -1) {
+		fprintf(stderr, "Error: failed to open %s: %s\n", FBDEV_DEV,
+			strerror(errno));
+		return;
+	}
+
+	if (ioctl(fd, FBIOGET_VSCREENINFO, &info)) {
+		fprintf(stderr, "Error: failed to run ioctl on %s: %s\n",
+			FBDEV_DEV, strerror(errno));
+		close(fd);
+		return;
+	}
+
+	close(fd);
+
+	if (info.xres && info.yres) {
+		*width = info.xres;
+		*height = info.yres;
+	} else
+		fprintf(stderr, "Error: FB claims 0x0 dimensions\n");
 }
 
 #define MAX_NUM_CONFIGS 4
@@ -305,19 +342,24 @@ static void GLimp_InitExtensions( void )
 void GLimp_Init(void)
 {
 	EGLint major, minor;
+	int fb_width, fb_height;
 
 	ri.Printf(PRINT_ALL, "Initializing OpenGL subsystem\n");
 
 	bzero(&glConfig, sizeof(glConfig));
 
+	fbdev_size(&fb_width, &fb_height);
+
+	ri.Printf(PRINT_ALL, "FB dimensions %dx%d\n", fb_width, fb_height);
+
 	eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	if (!eglInitialize(eglDisplay, &major, &minor))
 		GLimp_HandleError();
 
-	make_window(eglDisplay, FBDEV_WIDTH, FBDEV_HEIGHT, &eglSurface, &eglContext);
+	make_window(eglDisplay, fb_width, fb_height, &eglSurface, &eglContext);
 	glConfig.isFullscreen = qtrue;
-	glConfig.vidWidth = FBDEV_WIDTH;
-	glConfig.vidHeight = FBDEV_HEIGHT;
+	glConfig.vidWidth = fb_width;
+	glConfig.vidHeight = fb_height;
 
 	glConfig.windowAspect = (float)glConfig.vidWidth / glConfig.vidHeight;
 	// FIXME
