@@ -1670,9 +1670,6 @@ Q3CGOBJ_ = \
   $(B)/baseq3/cgame/cg_view.o \
   $(B)/baseq3/cgame/cg_weapons.o \
   \
-  $(B)/baseq3/cgame/mod_baseq3.o \
-  $(B)/baseq3/cgame/ogc_util.o \
-  \
   $(B)/baseq3/qcommon/q_math.o \
   $(B)/baseq3/qcommon/q_shared.o
 

@@ -164,11 +164,6 @@ typedef struct {
 
 
 
-typedef struct {
-	vec3_t origin;
-	int time;
-} history_t;
-
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
 typedef struct centity_s {
@@ -202,15 +197,6 @@ typedef struct centity_s {
 	// exact interpolated position of entity on this frame
 	vec3_t			lerpOrigin;
 	vec3_t			lerpAngles;
-
-	// OGC: Core
-	int visible;
-	vec3_t predictedOrigin;
-	// OGC: Cubic Spline
-	vec3_t vel;
-	vec3_t acc;
-	history_t history[1000];
-	int hindex;
 } centity_t;
 
 
@@ -1197,22 +1183,6 @@ extern  vmCvar_t		cg_recordSPDemoName;
 extern	vmCvar_t		cg_obeliskRespawnDelay;
 #endif
 
-extern	vmCvar_t		ogc_aim;
-extern	vmCvar_t		ogc_ignorewalls;
-extern	vmCvar_t		ogc_pingpredict;
-extern	vmCvar_t		ogc_wall;
-extern	vmCvar_t		ogc_radar;
-extern	vmCvar_t		ogc_guid;
-extern	vmCvar_t		ogc_mode;
-extern	vmCvar_t		ogc_nofx;
-extern	vmCvar_t		ogc_bunny;
-extern	vmCvar_t		ogc_namelength;
-extern	vmCvar_t		ogc_names;
-extern	vmCvar_t		ogc_weapons;
-extern	vmCvar_t		ogc_glow;
-extern	vmCvar_t		ogc_safe;
-extern	vmCvar_t		ogc_shoot;
-
 //
 // cg_main.c
 //
@@ -1231,7 +1201,6 @@ int CG_LastAttacker( void );
 void CG_LoadMenus(const char *menuFile);
 void CG_KeyEvent(int key, qboolean down);
 void CG_MouseEvent(int x, int y);
-void CG_AccelEvent(int x, int y);
 void CG_EventHandling(int type);
 void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
@@ -1242,7 +1211,6 @@ void CG_BuildSpectatorString( void );
 //
 // cg_view.c
 //
-extern centity_t *ogc_target;
 void CG_TestModel_f (void);
 void CG_TestGun_f (void);
 void CG_TestModelNextFrame_f (void);
@@ -1252,8 +1220,6 @@ void CG_TestModelPrevSkin_f (void);
 void CG_ZoomDown_f( void );
 void CG_ZoomUp_f( void );
 void CG_AddBufferedSound( sfxHandle_t sfx);
-
-qboolean OGC_IsDead(centity_t *ent);
 
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
 
@@ -1685,9 +1651,6 @@ qboolean	trap_getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
 qboolean	trap_GetEntityToken( char *buffer, int bufferSize );
 
-void trap_MouseEvent(int dx, int dy, int time);
-qboolean trap_MotionPressed(void);
-
 void	CG_ClearParticles (void);
 void	CG_AddParticles (void);
 void	CG_ParticleSnow (qhandle_t pshader, vec3_t origin, vec3_t origin2, int turb, float range, int snum);
@@ -1703,4 +1666,3 @@ extern qboolean		initparticles;
 int CG_NewParticleArea ( int num );
 
 
-#include "engine.h"

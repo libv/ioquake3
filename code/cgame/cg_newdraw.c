@@ -1700,12 +1700,13 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
 
 void CG_MouseEvent(int x, int y) {
 	int n;
+
 	if ( (cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_SPECTATOR) && cg.showScores == qfalse) {
     trap_Key_SetCatcher(0);
 		return;
 	}
 
-	cgs.cursorX += x;
+	cgs.cursorX+= x;
 	if (cgs.cursorX < 0)
 		cgs.cursorX = 0;
 	else if (cgs.cursorX > 640)

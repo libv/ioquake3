@@ -24,7 +24,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // for a 3D rendering
 #include "cg_local.h"
 
-centity_t *ogc_target;
 
 /*
 =============================================================================
@@ -752,120 +751,6 @@ static void CG_PlayBufferedSounds( void ) {
 
 //=========================================================================
 
-static void OCG_ScanForCrosshairEntity(void)
-{
-	trace_t trace;
-	vec3_t end;
-
-	VectorMA(cg.refdef.vieworg, 131072, cg.refdef.viewaxis[0], end);
-
-	CG_Trace(&trace, cg.refdef.vieworg, vec3_origin, vec3_origin, end,
-		 cg.snap->ps.clientNum, CONTENTS_SOLID | CONTENTS_BODY);
-
-	if (trace.entityNum >= MAX_CLIENTS
-	    || (cgs.clientinfo[trace.entityNum].team
-		&& cgs.clientinfo[trace.entityNum].team ==
-		cgs.clientinfo[cg.snap->ps.clientNum].team)) {
-		cg.crosshairClientNum = -1;
-		return;
-	}
-
-	cg.crosshairClientNum = trace.entityNum;
-}
-
-void OGC_DoBunnyHop(void)
-{
-	static int unhop = 0;
-	if (unhop && cg.snap->ps.velocity[2] > 0.0f) {
-		unhop = 0;
-		trap_SendConsoleCommand("-moveup\n");
-	} else if (!unhop && ogc_bunny.integer
-		   && cg.snap->ps.velocity[2] <= 0.0f) {
-		unhop = 1;
-		trap_SendConsoleCommand("+moveup\n");
-	}
-}
-
-qboolean OGC_IsDead(centity_t * ent)
-{
-	return (qboolean) (ent->currentState.eFlags & EF_DEAD);
-}
-
-void OGC_DoAimbot(void)
-{
-	vec3_t org, ang;
-	vec3_t targorg;
-
-	if (!ogc_aim.integer) {
-		return;
-	}
-
-	if (!ogc_target) {
-		return;
-	}
-
-	if (OGC_IsDead(ogc_target)) {
-		ogc_target = NULL;
-		return;
-	}
-
-	ogc_target->visible = OGC_EntityIsVisible(ogc_target);
-	if (!ogc_target->visible) {
-		return;
-	}
-
-	if (trap_MotionPressed()) {
-		return;
-	}
-
-	VectorCopy(ogc_target->predictedOrigin, targorg);
-	targorg[2] += DEFAULT_VIEWHEIGHT * 0.6;
-
-	VectorSubtract(targorg, cg.refdef.vieworg, org);
-	vectoangles(org, ang);
-	AnglesToAxis(ang, cg.refdef.viewaxis);
-	AnglesSubtract(ang, cg.refdefViewAngles, ang);
-	trap_MouseEvent(ang[YAW], ang[PITCH], trap_Milliseconds());
-}
-
-void OGC_DoAutoshoot(void)
-{
-	static int fire_state = 0;
-	if (fire_state && cg.crosshairClientNum < 0) {
-		//CG_Printf("Shoot: 0\n");
-		fire_state = 0;
-		trap_SendConsoleCommand("-attack\n");
-	} else if (ogc_shoot.integer && !fire_state && cg.crosshairClientNum >= 0) {
-		//CG_Printf("Shoot: 1\n");
-		fire_state = 1;
-		trap_SendConsoleCommand("+attack\n");
-	}
-}
-
-void OGC_DrawActiveFrame(void)
-{
-#if 0
-	vec4_t radarcolor = { 0.5f, 0.5f, 0.5f, 0.25f };
-	vec4_t black = { 0.0f, 0.0f, 0.0f, 0.5f };
-#endif
-
-	OCG_ScanForCrosshairEntity();
-	OGC_DoAutoshoot();
-	OGC_DoBunnyHop();
-	OGC_DoAimbot();
-#if 0
-	OGC_DrawConsole();
-	OGC_DrawMenu();
-	if (ogc_radar.integer) {
-		CG_FillRect(25, 100, 200, 200, radarcolor);
-		CG_FillRect(125, 100, 1, 200, black);
-		CG_FillRect(25, 200, 200, 1, black);
-	}
-#endif
-}
-
-//=========================================================================
-
 /*
 =================
 CG_DrawActiveFrame
@@ -929,7 +814,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// build the render lists
 	if ( !cg.hyperspace ) {
 		CG_AddPacketEntities();			// adter calcViewValues, so predicted player state is correct
-		OGC_DrawActiveFrame();
 		CG_AddMarks();
 		CG_AddParticles ();
 		CG_AddLocalEntities();

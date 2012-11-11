@@ -476,13 +476,6 @@ static void Accelerometer_HandleEvents(void)
 	Com_QueueEvent(t, SE_ACCEL, dx, dy, 0, NULL);
 }
 
-static qboolean motionPressed = qfalse;
-
-qboolean IN_MotionPressed(void)
-{
-	return motionPressed;
-}
-
 static void HandleEvents(void)
 {
 	int key;
@@ -559,16 +552,6 @@ static void HandleEvents(void)
 			}
 			break;
 
-		case ButtonPress:
-		case ButtonRelease:
-			t = Sys_XTimeToSysTime(event.xkey.time);
-			motionPressed = (qboolean) (event.type == ButtonPress);
-			if (Key_GetCatcher() & (KEYCATCH_CGAME | KEYCATCH_UI)) {
-				Com_QueueEvent(t, SE_KEY, K_MOUSE1,
-					       motionPressed, 0, NULL);
-			}
-			break;
-
 		case CreateNotify:
 			win_x = event.xcreatewindow.x;
 			win_y = event.xcreatewindow.y;
@@ -579,10 +562,6 @@ static void HandleEvents(void)
 			win_y = event.xconfigure.y;
 			break;
 		}
-	}
-
-	if (motionPressed) {
-		Com_QueueEvent(t, SE_MOUSE, dx, dy, 0, NULL);
 	}
 
 	Proximity_HandleEvents();

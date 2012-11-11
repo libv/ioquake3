@@ -33,7 +33,6 @@ void IN_Init( void );
 void IN_Frame( void );
 void IN_Shutdown( void );
 void IN_Restart( void );
-qboolean IN_MotionPressed( void );
 
 // Console
 void CON_Shutdown( void );
