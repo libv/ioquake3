@@ -1092,7 +1092,11 @@ qglGetError(void)
 void
 qglGetIntegerv(GLenum pname, GLint *params)
 {
-	fprintf(stderr, "Error: %s() called!\n", __func__);
+	if (pname == GL_MAX_TEXTURE_SIZE)
+		params[0] = 4096;
+	else
+		fprintf(stderr, "Error: %s(%s, %p) called!\n",
+			__func__, GLEnumString(pname), params);
 }
 
 void
