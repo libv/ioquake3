@@ -108,6 +108,8 @@ static void make_window(EGLDisplay eglDisplay, int width, int height,
 
 		EGL_DEPTH_SIZE, 8,
 
+		EGL_SAMPLES, 4,
+
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES_BIT,
 
