@@ -504,7 +504,7 @@ static void Upload32( unsigned *data,
 	int			scaled_width, scaled_height;
 	int			i, c;
 	byte		*scan;
-	GLenum		internalFormat = GL_RGB;
+	GLenum		internalFormat = GL_RGBA;
 	float		rMax = 0, gMax = 0, bMax = 0;
 
 	//

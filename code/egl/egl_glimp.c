@@ -1108,6 +1108,11 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 		const unsigned int *texture = pixels;
 		int i;
 
+		if (internalformat == GL_RGB) {
+			printf("Texture %d is flagged as an RGB texture!\n", bound_texture);
+			internalformat = GL_RGBA;
+		}
+
 		fprintf(qgllog, "\tunsigned int Texture_%d_%d[%d * %d] = {\n",
 			bound_texture, level, width, height);
 		for (i = 0; i < (width * height); i++) {
