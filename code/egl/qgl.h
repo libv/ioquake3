@@ -18,7 +18,7 @@ static inline void qglAlphaFunc(GLenum func, GLclampf ref)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glAlphaFunc(func=%lu, ref=%f)\n", func, ref);
+	    fprintf(QGLDebugFile(), "\tglAlphaFunc(%s, %f);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFunc(func, ref);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -32,7 +32,7 @@ static inline void qglClearColor(GLclampf red, GLclampf green, GLclampf blue, GL
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClearColor(red=%f, green=%f, blue=%f, alpha=%f)\n", red, green, blue, alpha);
+        fprintf(QGLDebugFile(), "\tglClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 #endif
     glClearColor(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -46,7 +46,7 @@ static inline void qglClearDepthf(GLclampf depth)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClearDepthf(depth=%f)\n", depth);
+        fprintf(QGLDebugFile(), "\tglClearDepthf(%f);\n", depth);
 #endif
     glClearDepthf(depth);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -60,7 +60,7 @@ static inline void qglClipPlanef(GLenum plane, const GLfloat *equation)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClipPlanef(plane=%lu, equation=%p)\n", plane, equation);
+	    fprintf(QGLDebugFile(), "\tglClipPlanef(%s, %p);\n", QGLEnumString(plane), equation);
 #endif
     glClipPlanef(plane, equation);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -74,8 +74,8 @@ static inline void qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glColor4f(red=%f, green=%f, blue=%f, alpha=%f)\n",
-		red, green, blue, alpha);
+	    fprintf(QGLDebugFile(), "\tglColor4f(%f, %f, %f, %f);\n",
+		    red, green, blue, alpha);
 #endif
     glColor4f(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -89,7 +89,7 @@ static inline void qglDepthRangef(GLclampf zNear, GLclampf zFar)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDepthRangef(zNear=%f, zFar=%f)\n", zNear, zFar);
+	    fprintf(QGLDebugFile(), "\tglDepthRangef(%f, %f);\n", zNear, zFar);
 #endif
     glDepthRangef(zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -103,7 +103,7 @@ static inline void qglFogf(GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFogf(pname=%lu, param=%f)\n", pname, param);
+	    fprintf(QGLDebugFile(), "\tglFogf(%s, %f);\n", QGLEnumString(pname), param);
 #endif
     glFogf(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -117,7 +117,7 @@ static inline void qglFogfv(GLenum pname, const GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFogfv(pname=%lu, params=%p)\n", pname, params);
+	    fprintf(QGLDebugFile(), "\tglFogfv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glFogfv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -131,7 +131,7 @@ static inline void qglFrustumf(GLfloat left, GLfloat right, GLfloat bottom, GLfl
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFrustumf(left=%f, right=%f, bottom=%f, top=%f, zNear=%f, zFar=%f)\n", left, right, bottom, top, zNear, zFar);
+	    fprintf(QGLDebugFile(), "\tglFrustumf(%f, %f, %f, %f, %f, %f);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glFrustumf(left, right, bottom, top, zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -145,7 +145,7 @@ static inline void qglGetClipPlanef(GLenum pname, GLfloat eqn[4])
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetClipPlanef(pname=%lu, eqn=%f)\n", pname, eqn);
+	    fprintf(QGLDebugFile(), "\tglGetClipPlanef(%s, %p);\n", QGLEnumString(pname), eqn);
 #endif
     glGetClipPlanef(pname, eqn);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -159,7 +159,7 @@ static inline void qglGetFloatv(GLenum pname, GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetFloatv(pname=%lu, params=%p)\n", pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetFloatv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetFloatv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -173,7 +173,7 @@ static inline void qglGetLightfv(GLenum light, GLenum pname, GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetLightfv(light=%lu, pname=%lu, params=%p)\n", light, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetLightfv(%s, %s, %p);\n", QGLEnumString(light), QGLEnumString(pname), params);
 #endif
     glGetLightfv(light, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -187,7 +187,7 @@ static inline void qglGetMaterialfv(GLenum face, GLenum pname, GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetMaterialfv(face=%lu, pname=%lu, params=%p)\n", face, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetMaterialfv(%s, %s, %p);\n", QGLEnumString(face), QGLEnumString(pname), params);
 #endif
     glGetMaterialfv(face, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -201,7 +201,7 @@ static inline void qglGetTexEnvfv(GLenum env, GLenum pname, GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexEnvfv(env=%lu, pname=%lu, params=%p)\n", env, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetTexEnvfv(%s, %s, %p);\n", QGLEnumString(env), QGLEnumString(pname), params);
 #endif
     glGetTexEnvfv(env, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -215,7 +215,7 @@ static inline void qglGetTexParameterfv(GLenum target, GLenum pname, GLfloat *pa
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexParameterfv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetTexParameterfv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glGetTexParameterfv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -229,7 +229,7 @@ static inline void qglLightModelf(GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightModelf(pname=%lu, param=%f)\n", pname, param);
+	    fprintf(QGLDebugFile(), "\tglLightModelf(%s, %f);\n", QGLEnumString(pname), param);
 #endif
     glLightModelf(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -243,7 +243,7 @@ static inline void qglLightModelfv(GLenum pname, const GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightModelfv(pname=%lu, params=%p)\n", pname, params);
+	    fprintf(QGLDebugFile(), "\tglLightModelfv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glLightModelfv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -257,7 +257,7 @@ static inline void qglLightf(GLenum light, GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightf(light=%lu, pname=%lu, param=%f)\n", light, pname, param);
+	    fprintf(QGLDebugFile(), "\tglLightf(%s, %s, %f);\n", QGLEnumString(light), QGLEnumString(pname), param);
 #endif
     glLightf(light, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -271,7 +271,7 @@ static inline void qglLightfv(GLenum light, GLenum pname, const GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightfv(light=%lu, pname=%lu, params=%p)\n", light, pname, params);
+	    fprintf(QGLDebugFile(), "\tglLightfv(%s, %s, %p);\n", QGLEnumString(light), QGLEnumString(pname), params);
 #endif
     glLightfv(light, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -285,7 +285,7 @@ static inline void qglLineWidth(GLfloat width)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLineWidth(width=%f)\n", width);
+	    fprintf(QGLDebugFile(), "\tglLineWidth(%f);\n", width);
 #endif
     glLineWidth(width);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -299,7 +299,7 @@ static inline void qglLoadMatrixf(const GLfloat *m)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLoadMatrixf(m=%p)\n", m);
+        fprintf(QGLDebugFile(), "\tglLoadMatrixf(m=%p)\n", m);
 #endif
     glLoadMatrixf(m);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -313,7 +313,7 @@ static inline void qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMaterialf(face=%lu, pname=%lu, param=%f)\n", face, pname, param);
+	    fprintf(QGLDebugFile(), "\tglMaterialf(%s, %s, %f);\n", QGLEnumString(face), QGLEnumString(pname), param);
 #endif
     glMaterialf(face, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -327,7 +327,7 @@ static inline void qglMaterialfv(GLenum face, GLenum pname, const GLfloat *param
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMaterialfv(face=%lu, pname=%lu, params=%p)\n", face, pname, params);
+	    fprintf(QGLDebugFile(), "\tglMaterialfv(%s, %s, %p);\n", QGLEnumString(face), QGLEnumString(pname), params);
 #endif
     glMaterialfv(face, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -341,7 +341,7 @@ static inline void qglMultMatrixf(const GLfloat *m)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMultMatrixf(m=%p)\n", m);
+	    fprintf(QGLDebugFile(), "\tglMultMatrixf(%p);\n", m);
 #endif
     glMultMatrixf(m);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -355,7 +355,7 @@ static inline void qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLflo
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMultiTexCoord4f(target=%lu, s=%f, t=%f, r=%f, q=%f)\n", target, s, t, r, q);
+	    fprintf(QGLDebugFile(), "\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n", QGLEnumString(target), s, t, r, q);
 #endif
     glMultiTexCoord4f(target, s, t, r, q);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -369,7 +369,7 @@ static inline void qglNormal3f(GLfloat nx, GLfloat ny, GLfloat nz)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glNormal3f(nx=%f, ny=%f, nz=%f)\n", nx, ny, nz);
+	    fprintf(QGLDebugFile(), "\tglNormal3f(%f, %f, %f);\n", nx, ny, nz);
 #endif
     glNormal3f(nx, ny, nz);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -383,7 +383,7 @@ static inline void qglOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloa
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glOrthof(left=%f, right=%f, bottom=%f, top=%f, zNear=%f, zFar=%f)\n", left, right, bottom, top, zNear, zFar);
+	    fprintf(QGLDebugFile(), "\tglOrthof(%f, %f, %f, %f, %f, %f);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glOrthof(left, right, bottom, top, zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -397,7 +397,7 @@ static inline void qglPointParameterf(GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointParameterf(pname=%lu, param=%f)\n", pname, param);
+	    fprintf(QGLDebugFile(), "\tglPointParameterf(%s, %f);\n", QGLEnumString(pname), param);
 #endif
     glPointParameterf(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -411,7 +411,7 @@ static inline void qglPointParameterfv(GLenum pname, const GLfloat *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointParameterfv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglPointParameterfv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glPointParameterfv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -425,7 +425,7 @@ static inline void qglPointSize(GLfloat size)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointSize(size=%f)\n", size);
+        fprintf(QGLDebugFile(), "\tglPointSize(%f);\n", size);
 #endif
     glPointSize(size);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -439,7 +439,7 @@ static inline void qglPolygonOffset(GLfloat factor, GLfloat units)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPolygonOffset(factor=%f, units=%f)\n", factor, units);
+        fprintf(QGLDebugFile(), "\tglPolygonOffset(%f, %f);\n", factor, units);
 #endif
     glPolygonOffset(factor, units);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -453,7 +453,7 @@ static inline void qglRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glRotatef(angle=%f, x=%f, y=%f, z=%f)\n", angle, x, y, z);
+        fprintf(QGLDebugFile(), "\tglRotatef(%f, %f, %f, %f);\n", angle, x, y, z);
 #endif
     glRotatef(angle, x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -467,7 +467,7 @@ static inline void qglScalef(GLfloat x, GLfloat y, GLfloat z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glScalef(x=%f, y=%f, z=%f)\n", x, y, z);
+        fprintf(QGLDebugFile(), "\tglScalef(%f, %f, %f);\n", x, y, z);
 #endif
     glScalef(x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -481,7 +481,7 @@ static inline void qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnvf(target=%lu, pname=%lu, param=%f)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexEnvf(%s, %s, %f);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvf(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -495,7 +495,7 @@ static inline void qglTexEnvfv(GLenum target, GLenum pname, const GLfloat *param
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnvfv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexEnvfv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexEnvfv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -509,7 +509,7 @@ static inline void qglTexParameterf(GLenum target, GLenum pname, GLfloat param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameterf(target=%lu, pname=%lu, param=%f)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexParameterf(%s, %s, %f);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexParameterf(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -523,7 +523,7 @@ static inline void qglTexParameterfv(GLenum target, GLenum pname, const GLfloat 
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameterfv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexParameterfv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexParameterfv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -537,7 +537,7 @@ static inline void qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTranslatef(x=%f, y=%f, z=%f)\n", x, y, z);
+        fprintf(QGLDebugFile(), "\tglTranslatef(%f, %f, %f);\n", x, y, z);
 #endif
     glTranslatef(x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -551,7 +551,7 @@ static inline void qglActiveTexture(GLenum texture)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glActiveTexture(texture=%lu)\n", texture);
+        fprintf(QGLDebugFile(), "\tglActiveTexture(texture=%lu)\n", texture);
 #endif
     glActiveTexture(texture);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -565,7 +565,7 @@ static inline void qglAlphaFuncx(GLenum func, GLclampx ref)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glAlphaFuncx(func=%lu, ref=%ld)\n", func, ref);
+	    fprintf(QGLDebugFile(), "\tglAlphaFuncx(%s, %d);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFuncx(func, ref);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -579,7 +579,7 @@ static inline void qglBindBuffer(GLenum target, GLuint buffer)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glBindBuffer(target=%lu, buffer=%lu)\n", target, buffer);
+        fprintf(QGLDebugFile(), "\tglBindBuffer(%s, %u);\n", QGLEnumString(target), buffer);
 #endif
     glBindBuffer(target, buffer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -593,7 +593,7 @@ static inline void qglBindTexture(GLenum target, GLuint texture)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glBindTexture(target=%lu, texture=%lu)\n", target, texture);
+        fprintf(QGLDebugFile(), "\tglBindTexture(target=%lu, texture=%lu)\n", target, texture);
 #endif
     glBindTexture(target, texture);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -607,7 +607,7 @@ static inline void qglBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glBlendFunc(sfactor=%lu, dfactor=%lu)\n", sfactor, dfactor);
+	    fprintf(QGLDebugFile(), "\tglBlendFunc(%s, %s);\n", QGLEnumString(sfactor), QGLEnumString(dfactor));
 #endif
     glBlendFunc(sfactor, dfactor);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -621,7 +621,7 @@ static inline void qglBufferData(GLenum target, GLsizeiptr size, const GLvoid *d
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glBufferData(target=%lu, size=%ld, data=%p, usage=%lu)\n", target, size, data, usage);
+	    fprintf(QGLDebugFile(), "\tglBufferData(%s, %p, %p, %s);\n", QGLEnumString(target), size, data, QGLEnumString(usage));
 #endif
     glBufferData(target, size, data, usage);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -635,7 +635,7 @@ static inline void qglBufferSubData(GLenum target, GLintptr offset, GLsizeiptr s
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glBufferSubData(target=%lu, offset=%ld, size=%ld, data=%p)\n", target, offset, size, data);
+        fprintf(QGLDebugFile(), "\tglBufferSubData(%s, %p, %p, %p);\n", QGLEnumString(target), offset, size, data);
 #endif
     glBufferSubData(target, offset, size, data);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -649,7 +649,7 @@ static inline void qglClear(GLbitfield mask)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClear(mask=%lu)\n", mask);
+	    fprintf(QGLDebugFile(), "\tglClear(%s);\n", QGLEnumString(mask));
 #endif
     glClear(mask);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -663,7 +663,7 @@ static inline void qglClearColorx(GLclampx red, GLclampx green, GLclampx blue, G
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClearColorx(red=%ld, green=%ld, blue=%ld, alpha=%ld)\n", red, green, blue, alpha);
+        fprintf(QGLDebugFile(), "\tglClearColorx(%d, %d, %d, %d);\n", red, green, blue, alpha);
 #endif
     glClearColorx(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -677,7 +677,7 @@ static inline void qglClearDepthx(GLclampx depth)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClearDepthx(depth=%ld)\n", depth);
+        fprintf(QGLDebugFile(), "\tglClearDepthx(%d);\n", depth);
 #endif
     glClearDepthx(depth);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -691,7 +691,7 @@ static inline void qglClearStencil(GLint s)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClearStencil(s=%ld)\n", s);
+        fprintf(QGLDebugFile(), "\tglClearStencil(%d);\n", s);
 #endif
     glClearStencil(s);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -705,7 +705,7 @@ static inline void qglClientActiveTexture(GLenum texture)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClientActiveTexture(texture=%lu)\n", texture);
+	    fprintf(QGLDebugFile(), "\tglClientActiveTexture(%s);\n", QGLEnumString(texture));
 #endif
     glClientActiveTexture(texture);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -719,7 +719,7 @@ static inline void qglClipPlanex(GLenum plane, const GLfixed *equation)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glClipPlanex(plane=%lu, equation=%p)\n", plane, equation);
+	    fprintf(QGLDebugFile(), "\tglClipPlanex(%s, %p);\n", QGLEnumString(plane), equation);
 #endif
     glClipPlanex(plane, equation);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -733,7 +733,7 @@ static inline void qglColor4ub(GLubyte red, GLubyte green, GLubyte blue, GLubyte
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glColor4ub(red=%u, green=%u, blue=%u, alpha=%u)\n", red, green, blue, alpha);
+        fprintf(QGLDebugFile(), "\tglColor4ub(%u, %u, %u, %u);\n", red, green, blue, alpha);
 #endif
     glColor4ub(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -747,7 +747,7 @@ static inline void qglColor4x(GLfixed red, GLfixed green, GLfixed blue, GLfixed 
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glColor4x(red=%ld, green=%ld, blue=%ld, alpha=%ld)\n", red, green, blue, alpha);
+        fprintf(QGLDebugFile(), "\tglColor4x(%d, %d, %d, %d);\n", red, green, blue, alpha);
 #endif
     glColor4x(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -761,7 +761,7 @@ static inline void qglColorMask(GLboolean red, GLboolean green, GLboolean blue, 
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glColorMask(red=%u, green=%u, blue=%u, alpha=%u)\n", red, green, blue, alpha);
+        fprintf(QGLDebugFile(), "\tglColorMask(%u, %u, %u, %u);\n", red, green, blue, alpha);
 #endif
     glColorMask(red, green, blue, alpha);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -775,7 +775,7 @@ static inline void qglColorPointer(GLint size, GLenum type, GLsizei stride, cons
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glColorPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
+        fprintf(QGLDebugFile(), "\tglColorPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
 #endif
     glColorPointer(size, type, stride, pointer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -789,7 +789,7 @@ static inline void qglCompressedTexImage2D(GLenum target, GLint level, GLenum in
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glCompressedTexImage2D(target=%lu, level=%ld, internalformat=%lu, width=%ld, height=%ld, border=%ld, imageSize=%ld, data=%p)\n", target, level, internalformat, width, height, border, imageSize, data);
+	    fprintf(QGLDebugFile(), "\tglCompressedTexImage2D(%s, %d, %s, %d, %d, %d, %d, %p);\n", QGLEnumString(target), level, QGLEnumString(internalformat), width, height, border, imageSize, data);
 #endif
     glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, data);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -803,7 +803,7 @@ static inline void qglCompressedTexSubImage2D(GLenum target, GLint level, GLint 
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glCompressedTexSubImage2D(target=%lu, level=%ld, xoffset=%ld, yoffset=%ld, width=%ld, height=%ld, format=%lu, imageSize=%ld, data=%p)\n", target, level, xoffset, yoffset, width, height, format, imageSize, data);
+	    fprintf(QGLDebugFile(), "\tglCompressedTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %d, %p);\n", QGLEnumString(target), level, xoffset, yoffset, width, height, QGLEnumString(format), imageSize, data);
 #endif
     glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, data);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -817,7 +817,7 @@ static inline void qglCopyTexImage2D(GLenum target, GLint level, GLenum internal
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glCopyTexImage2D(target=%lu, level=%ld, internalformat=%lu, x=%ld, y=%ld, width=%ld, height=%ld, border=%ld)\n", target, level, internalformat, x, y, width, height, border);
+	    fprintf(QGLDebugFile(), "\tglCopyTexImage2D(%s, %d, %s, %d, %d, %d, %d, %d);\n", QGLEnumString(target), level, QGLEnumString(internalformat), x, y, width, height, border);
 #endif
     glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -831,7 +831,7 @@ static inline void qglCopyTexSubImage2D(GLenum target, GLint level, GLint xoffse
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glCopyTexSubImage2D(target=%lu, level=%ld, xoffset=%ld, yoffset=%ld, x=%ld, y=%ld, width=%ld, height=%ld)\n", target, level, xoffset, yoffset, x, y, width, height);
+        fprintf(QGLDebugFile(), "\tglCopyTexSubImage2D(%s, %d, %d, %d, %d, %d, %d, %d);\n", QGLEnumString(target), level, xoffset, yoffset, x, y, width, height);
 #endif
     glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -845,7 +845,7 @@ static inline void qglCullFace(GLenum mode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glCullFace(mode=%lu)\n", mode);
+	    fprintf(QGLDebugFile(), "\tglCullFace(%s);\n", QGLEnumString(mode));
 #endif
     glCullFace(mode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -859,7 +859,7 @@ static inline void qglDeleteBuffers(GLsizei n, const GLuint *buffers)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDeleteBuffers(n=%ld, buffers=%p)\n", n, buffers);
+        fprintf(QGLDebugFile(), "\tglDeleteBuffers(%d, %p);\n", n, buffers);
 #endif
     glDeleteBuffers(n, buffers);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -873,7 +873,7 @@ static inline void qglDeleteTextures(GLsizei n, const GLuint *textures)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDeleteTextures(n=%ld, textures=%p)\n", n, textures);
+        fprintf(QGLDebugFile(), "\tglDeleteTextures(n=%ld, textures=%p)\n", n, textures);
 #endif
     glDeleteTextures(n, textures);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -887,7 +887,7 @@ static inline void qglDepthFunc(GLenum func)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDepthFunc(func=%lu)\n", func);
+	    fprintf(QGLDebugFile(), "\tglDepthFunc(%s);\n", QGLEnumString(func));
 #endif
     glDepthFunc(func);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -901,7 +901,7 @@ static inline void qglDepthMask(GLboolean flag)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDepthMask(flag=%u)\n", flag);
+        fprintf(QGLDebugFile(), "\tglDepthMask(%u);\n", flag);
 #endif
     glDepthMask(flag);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -915,7 +915,7 @@ static inline void qglDepthRangex(GLclampx zNear, GLclampx zFar)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDepthRangex(zNear=%ld, zFar=%ld)\n", zNear, zFar);
+        fprintf(QGLDebugFile(), "\tglDepthRangex(%d, %d);\n", zNear, zFar);
 #endif
     glDepthRangex(zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -929,7 +929,7 @@ static inline void qglDisable(GLenum cap)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDisable(cap=%lu)\n", cap);
+	    fprintf(QGLDebugFile(), "\tglDisable(%s);\n", QGLEnumString(cap));
 #endif
     glDisable(cap);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -943,7 +943,7 @@ static inline void qglDisableClientState(GLenum array)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDisableClientState(array=%lu)\n", array);
+        fprintf(QGLDebugFile(), "\tglDisableClientState(array=%lu)\n", array);
 #endif
     glDisableClientState(array);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -957,7 +957,7 @@ static inline void qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDrawArrays(mode=%lu, first=%ld, count=%ld)\n", mode, first, count);
+	    fprintf(QGLDebugFile(), "\tglDrawArrays(%s, %d, %d);\n", QGLEnumString(mode), first, count);
 #endif
     glDrawArrays(mode, first, count);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -971,7 +971,7 @@ static inline void qglDrawElements(GLenum mode, GLsizei count, GLenum type, cons
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glDrawElements(mode=%lu, count=%ld, type=%lu, indices=%p)\n", mode, count, type, indices);
+        fprintf(QGLDebugFile(), "\tglDrawElements(mode=%lu, count=%ld, type=%lu, indices=%p)\n", mode, count, type, indices);
 #endif
     glDrawElements(mode, count, type, indices);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -985,7 +985,7 @@ static inline void qglEnable(GLenum cap)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glEnable(cap=%lu)\n", cap);
+	    fprintf(QGLDebugFile(), "\tglEnable(%s);\n", QGLEnumString(cap));
 #endif
     glEnable(cap);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -999,7 +999,7 @@ static inline void qglEnableClientState(GLenum array)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glEnableClientState(array=%lu)\n", array);
+	    fprintf(QGLDebugFile(), "\tglEnableClientState(%s);\n", QGLEnumString(array));
 #endif
     glEnableClientState(array);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1013,7 +1013,7 @@ static inline void qglFinish(void)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFinish(void)\n");
+        fprintf(QGLDebugFile(), "\tglFinish();\n");
 #endif
     glFinish();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1027,7 +1027,7 @@ static inline void qglFlush(void)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFlush(void)\n");
+        fprintf(QGLDebugFile(), "\tglFlush();\n");
 #endif
     glFlush();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1041,7 +1041,7 @@ static inline void qglFogx(GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFogx(pname=%lu, param=%ld)\n", pname, param);
+        fprintf(QGLDebugFile(), "\tglFogx(%s, %d);\n", QGLEnumString(pname), param);
 #endif
     glFogx(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1055,7 +1055,7 @@ static inline void qglFogxv(GLenum pname, const GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFogxv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglFogxv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glFogxv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1069,7 +1069,7 @@ static inline void qglFrontFace(GLenum mode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFrontFace(mode=%lu)\n", mode);
+	    fprintf(QGLDebugFile(), "\tglFrontFace(%s);\n", QGLEnumString(mode));
 #endif
     glFrontFace(mode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1083,7 +1083,7 @@ static inline void qglFrustumx(GLfixed left, GLfixed right, GLfixed bottom, GLfi
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glFrustumx(left=%ld, right=%ld, bottom=%ld, top=%ld, zNear=%ld, zFar=%ld)\n", left, right, bottom, top, zNear, zFar);
+        fprintf(QGLDebugFile(), "\tglFrustumx(%d, %d, %d, %d, %d, %d);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glFrustumx(left, right, bottom, top, zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1097,7 +1097,7 @@ static inline void qglGetBooleanv(GLenum pname, GLboolean *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetBooleanv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglGetBooleanv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetBooleanv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1111,7 +1111,7 @@ static inline void qglGetBufferParameteriv(GLenum target, GLenum pname, GLint *p
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetBufferParameteriv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglGetBufferParameteriv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glGetBufferParameteriv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1125,7 +1125,7 @@ static inline void qglGetClipPlanex(GLenum pname, GLfixed eqn[4])
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetClipPlanex(pname=%lu, eqn=%ld)\n", pname, eqn);
+        fprintf(QGLDebugFile(), "\tglGetClipPlanex(%s, %p);\n", QGLEnumString(pname), eqn);
 #endif
     glGetClipPlanex(pname, eqn);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1139,7 +1139,7 @@ static inline void qglGenBuffers(GLsizei n, GLuint *buffers)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGenBuffers(n=%ld, buffers=%p)\n", n, buffers);
+        fprintf(QGLDebugFile(), "\tglGenBuffers(%d, %p);\n", n, buffers);
 #endif
     glGenBuffers(n, buffers);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1153,7 +1153,7 @@ static inline void qglGenTextures(GLsizei n, GLuint *textures)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGenTextures(n=%ld, textures=%p)\n", n, textures);
+        fprintf(QGLDebugFile(), "\tglGenTextures(%d, %p);\n", n, textures);
 #endif
     glGenTextures(n, textures);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1168,7 +1168,7 @@ static inline GLenum qglGetError(void)
     GLenum returnValue;
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetError(void)\n");
+        fprintf(QGLDebugFile(), "\tglGetError();\n");
 #endif
     returnValue = glGetError();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1183,7 +1183,7 @@ static inline void qglGetFixedv(GLenum pname, GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetFixedv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglGetFixedv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetFixedv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1197,7 +1197,7 @@ static inline void qglGetIntegerv(GLenum pname, GLint *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetIntegerv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglGetIntegerv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetIntegerv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1211,7 +1211,7 @@ static inline void qglGetLightxv(GLenum light, GLenum pname, GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetLightxv(light=%lu, pname=%lu, params=%p)\n", light, pname, params);
+        fprintf(QGLDebugFile(), "\tglGetLightxv(%s, %s, %p);\n", QGLEnumString(light), QGLEnumString(pname), params);
 #endif
     glGetLightxv(light, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1225,7 +1225,7 @@ static inline void qglGetMaterialxv(GLenum face, GLenum pname, GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetMaterialxv(face=%lu, pname=%lu, params=%p)\n", face, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetMaterialxv(%s, %s, %p);\n", QGLEnumString(face), QGLEnumString(pname), params);
 #endif
     glGetMaterialxv(face, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1239,7 +1239,7 @@ static inline void qglGetPointerv(GLenum pname, void **params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetPointerv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglGetPointerv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetPointerv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1254,7 +1254,7 @@ static inline const GLubyte * qglGetString(GLenum name)
     const GLubyte * returnValue;
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetString(name=%lu)\n", name);
+	    fprintf(QGLDebugFile(), "\tglGetString(%s);\n", QGLEnumString(name));
 #endif
     returnValue = glGetString(name);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1269,7 +1269,7 @@ static inline void qglGetTexEnviv(GLenum env, GLenum pname, GLint *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexEnviv(env=%lu, pname=%lu, params=%p)\n", env, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetTexEnviv(%s, %s, %p);\n", QGLEnumString(env), QGLEnumString(pname), params);
 #endif
     glGetTexEnviv(env, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1283,7 +1283,7 @@ static inline void qglGetTexEnvxv(GLenum env, GLenum pname, GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexEnvxv(env=%lu, pname=%lu, params=%p)\n", env, pname, params);
+	    fprintf(QGLDebugFile(), "\tglGetTexEnvxv(%s, %s, %p);\n", QGLEnumString(env), QGLEnumString(pname), params);
 #endif
     glGetTexEnvxv(env, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1297,7 +1297,7 @@ static inline void qglGetTexParameteriv(GLenum target, GLenum pname, GLint *para
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexParameteriv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglGetTexParameteriv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glGetTexParameteriv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1311,7 +1311,7 @@ static inline void qglGetTexParameterxv(GLenum target, GLenum pname, GLfixed *pa
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glGetTexParameterxv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglGetTexParameterxv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glGetTexParameterxv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1325,7 +1325,7 @@ static inline void qglHint(GLenum target, GLenum mode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glHint(target=%lu, mode=%lu)\n", target, mode);
+	    fprintf(QGLDebugFile(), "\tglHint(%s, %s);\n", QGLEnumString(target), QGLEnumString(mode));
 #endif
     glHint(target, mode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1340,7 +1340,7 @@ static inline GLboolean qglIsBuffer(GLuint buffer)
     GLboolean returnValue;
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glIsBuffer(buffer=%lu)\n", buffer);
+        fprintf(QGLDebugFile(), "\tglIsBuffer(%u);\n", buffer);
 #endif
     returnValue = glIsBuffer(buffer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1356,7 +1356,7 @@ static inline GLboolean qglIsEnabled(GLenum cap)
     GLboolean returnValue;
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glIsEnabled(cap=%lu)\n", cap);
+	    fprintf(QGLDebugFile(), "\tglIsEnabled(%s);\n", QGLEnumString(cap));
 #endif
     returnValue = glIsEnabled(cap);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1372,7 +1372,7 @@ static inline GLboolean qglIsTexture(GLuint texture)
     GLboolean returnValue;
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glIsTexture(texture=%lu)\n", texture);
+        fprintf(QGLDebugFile(), "\tglIsTexture(%u);\n", texture);
 #endif
     returnValue = glIsTexture(texture);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1387,7 +1387,7 @@ static inline void qglLightModelx(GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightModelx(pname=%lu, param=%ld)\n", pname, param);
+        fprintf(QGLDebugFile(), "\tglLightModelx(%s, %d);\n", QGLEnumString(pname), param);
 #endif
     glLightModelx(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1401,7 +1401,7 @@ static inline void qglLightModelxv(GLenum pname, const GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightModelxv(pname=%lu, params=%p)\n", pname, params);
+	    fprintf(QGLDebugFile(), "\tglLightModelxv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glLightModelxv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1415,7 +1415,7 @@ static inline void qglLightx(GLenum light, GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightx(light=%lu, pname=%lu, param=%ld)\n", light, pname, param);
+        fprintf(QGLDebugFile(), "\tglLightx(%s, %s, %d);\n", QGLEnumString(light), QGLEnumString(pname), param);
 #endif
     glLightx(light, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1429,7 +1429,7 @@ static inline void qglLightxv(GLenum light, GLenum pname, const GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLightxv(light=%lu, pname=%lu, params=%p)\n", light, pname, params);
+        fprintf(QGLDebugFile(), "\tglLightxv(%s, %s, %p);\n", QGLEnumString(light), QGLEnumString(pname), params);
 #endif
     glLightxv(light, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1443,7 +1443,7 @@ static inline void qglLineWidthx(GLfixed width)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLineWidthx(width=%ld)\n", width);
+        fprintf(QGLDebugFile(), "\tglLineWidthx(%d);\n", width);
 #endif
     glLineWidthx(width);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1457,7 +1457,7 @@ static inline void qglLoadIdentity(void)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLoadIdentity(void)\n");
+        fprintf(QGLDebugFile(), "\tglLoadIdentity();\n");
 #endif
     glLoadIdentity();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1471,7 +1471,7 @@ static inline void qglLoadMatrixx(const GLfixed *m)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLoadMatrixx(m=%p)\n", m);
+        fprintf(QGLDebugFile(), "\tglLoadMatrixx(%p);\n", m);
 #endif
     glLoadMatrixx(m);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1485,7 +1485,7 @@ static inline void qglLogicOp(GLenum opcode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glLogicOp(opcode=%lu)\n", opcode);
+	    fprintf(QGLDebugFile(), "\tglLogicOp(%s);\n", QGLEnumString(opcode));
 #endif
     glLogicOp(opcode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1499,7 +1499,7 @@ static inline void qglMaterialx(GLenum face, GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMaterialx(face=%lu, pname=%lu, param=%ld)\n", face, pname, param);
+	    fprintf(QGLDebugFile(), "\tglMaterialx(%s, %s, %d);\n", QGLEnumString(face), QGLEnumString(pname), param);
 #endif
     glMaterialx(face, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1513,7 +1513,7 @@ static inline void qglMaterialxv(GLenum face, GLenum pname, const GLfixed *param
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMaterialxv(face=%lu, pname=%lu, params=%p)\n", face, pname, params);
+	    fprintf(QGLDebugFile(), "\tglMaterialxv(%s %s, %p);\n", QGLEnumString(face), QGLEnumString(pname), params);
 #endif
     glMaterialxv(face, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1527,7 +1527,7 @@ static inline void qglMatrixMode(GLenum mode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMatrixMode(mode=%lu)\n", mode);
+	    fprintf(QGLDebugFile(), "\tglMatrixMode(%s);\n", QGLEnumString(mode));
 #endif
     glMatrixMode(mode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1541,7 +1541,7 @@ static inline void qglMultMatrixx(const GLfixed *m)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMultMatrixx(m=%p)\n", m);
+        fprintf(QGLDebugFile(), "\tglMultMatrixx(%p);\n", m);
 #endif
     glMultMatrixx(m);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1555,7 +1555,7 @@ static inline void qglMultiTexCoord4x(GLenum target, GLfixed s, GLfixed t, GLfix
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glMultiTexCoord4x(target=%lu, s=%ld, t=%ld, r=%ld, q=%ld)\n", target, s, t, r, q);
+        fprintf(QGLDebugFile(), "\tglMultiTexCoord4x(%s, %d, %d, %d, %d);\n", QGLEnumString(target), s, t, r, q);
 #endif
     glMultiTexCoord4x(target, s, t, r, q);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1569,7 +1569,7 @@ static inline void qglNormal3x(GLfixed nx, GLfixed ny, GLfixed nz)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glNormal3x(nx=%ld, ny=%ld, nz=%ld)\n", nx, ny, nz);
+        fprintf(QGLDebugFile(), "\tglNormal3x(%d, %d, %d);\n", nx, ny, nz);
 #endif
     glNormal3x(nx, ny, nz);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1583,7 +1583,7 @@ static inline void qglNormalPointer(GLenum type, GLsizei stride, const GLvoid *p
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glNormalPointer(type=%lu, stride=%ld, pointer=%p)\n", type, stride, pointer);
+        fprintf(QGLDebugFile(), "\tglNormalPointer(%s, %d, %p);\n", QGLEnumString(type), stride, pointer);
 #endif
     glNormalPointer(type, stride, pointer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1597,7 +1597,7 @@ static inline void qglOrthox(GLfixed left, GLfixed right, GLfixed bottom, GLfixe
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glOrthox(left=%ld, right=%ld, bottom=%ld, top=%ld, zNear=%ld, zFar=%ld)\n", left, right, bottom, top, zNear, zFar);
+        fprintf(QGLDebugFile(), "\tglOrthox(%d, %d, %d, %d, %d, %d);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glOrthox(left, right, bottom, top, zNear, zFar);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1611,7 +1611,7 @@ static inline void qglPixelStorei(GLenum pname, GLint param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPixelStorei(pname=%lu, param=%ld)\n", pname, param);
+        fprintf(QGLDebugFile(), "\tglPixelStorei(%s, %d);\n", QGLEnumString(pname), param);
 #endif
     glPixelStorei(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1625,7 +1625,7 @@ static inline void qglPointParameterx(GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointParameterx(pname=%lu, param=%ld)\n", pname, param);
+	    fprintf(QGLDebugFile(), "\tglPointParameterx(%s, %d);\n", QGLEnumString(pname), param);
 #endif
     glPointParameterx(pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1639,7 +1639,7 @@ static inline void qglPointParameterxv(GLenum pname, const GLfixed *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointParameterxv(pname=%lu, params=%p)\n", pname, params);
+        fprintf(QGLDebugFile(), "\tglPointParameterxv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glPointParameterxv(pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1653,7 +1653,7 @@ static inline void qglPointSizex(GLfixed size)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointSizex(size=%ld)\n", size);
+        fprintf(QGLDebugFile(), "\tglPointSizex(%d);\n", size);
 #endif
     glPointSizex(size);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1667,7 +1667,7 @@ static inline void qglPolygonOffsetx(GLfixed factor, GLfixed units)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPolygonOffsetx(factor=%ld, units=%ld)\n", factor, units);
+        fprintf(QGLDebugFile(), "\tglPolygonOffsetx(%d, %d);\n", factor, units);
 #endif
     glPolygonOffsetx(factor, units);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1681,7 +1681,7 @@ static inline void qglPopMatrix(void)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPopMatrix(void)\n");
+        fprintf(QGLDebugFile(), "\tglPopMatrix();\n");
 #endif
     glPopMatrix();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1695,7 +1695,7 @@ static inline void qglPushMatrix(void)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPushMatrix(void)\n");
+        fprintf(QGLDebugFile(), "\tglPushMatrix();\n");
 #endif
     glPushMatrix();
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1709,7 +1709,7 @@ static inline void qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glReadPixels(x=%ld, y=%ld, width=%ld, height=%ld, format=%lu, type=%lu, pixels=%p)\n", x, y, width, height, format, type, pixels);
+	    fprintf(QGLDebugFile(), "\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glReadPixels(x, y, width, height, format, type, pixels);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1723,7 +1723,7 @@ static inline void qglRotatex(GLfixed angle, GLfixed x, GLfixed y, GLfixed z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glRotatex(angle=%ld, x=%ld, y=%ld, z=%ld)\n", angle, x, y, z);
+        fprintf(QGLDebugFile(), "\tglRotatex(%d, %d, %d, %d);\n", angle, x, y, z);
 #endif
     glRotatex(angle, x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1737,7 +1737,7 @@ static inline void qglSampleCoverage(GLclampf value, GLboolean invert)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glSampleCoverage(value=%f, invert=%u)\n", value, invert);
+        fprintf(QGLDebugFile(), "\tglSampleCoverage(%f, %u);\n", value, invert);
 #endif
     glSampleCoverage(value, invert);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1751,7 +1751,7 @@ static inline void qglSampleCoveragex(GLclampx value, GLboolean invert)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glSampleCoveragex(value=%ld, invert=%u)\n", value, invert);
+        fprintf(QGLDebugFile(), "\tglSampleCoveragex(%d, %u);\n", value, invert);
 #endif
     glSampleCoveragex(value, invert);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1765,7 +1765,7 @@ static inline void qglScalex(GLfixed x, GLfixed y, GLfixed z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glScalex(x=%ld, y=%ld, z=%ld)\n", x, y, z);
+        fprintf(QGLDebugFile(), "\tglScalex(%d, %d, %d);\n", x, y, z);
 #endif
     glScalex(x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1779,7 +1779,7 @@ static inline void qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glScissor(x=%ld, y=%ld, width=%ld, height=%ld)\n", x, y, width, height);
+        fprintf(QGLDebugFile(), "\tglScissor(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glScissor(x, y, width, height);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1793,7 +1793,7 @@ static inline void qglShadeModel(GLenum mode)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glShadeModel(mode=%lu)\n", mode);
+	    fprintf(QGLDebugFile(), "\tglShadeModel(%s);\n", QGLEnumString(mode));
 #endif
     glShadeModel(mode);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1807,7 +1807,7 @@ static inline void qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glStencilFunc(func=%lu, ref=%ld, mask=%lu)\n", func, ref, mask);
+	    fprintf(QGLDebugFile(), "\tglStencilFunc(%s, %d, %s);\n", QGLEnumString(func), ref, QGLEnumString(mask));
 #endif
     glStencilFunc(func, ref, mask);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1821,7 +1821,7 @@ static inline void qglStencilMask(GLuint mask)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glStencilMask(mask=%lu)\n", mask);
+	    fprintf(QGLDebugFile(), "\tglStencilMask(%s);\n", QGLEnumString(mask));
 #endif
     glStencilMask(mask);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1835,7 +1835,7 @@ static inline void qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glStencilOp(fail=%lu, zfail=%lu, zpass=%lu)\n", fail, zfail, zpass);
+	    fprintf(QGLDebugFile(), "\tglStencilOp(%s, %s, %s);\n", QGLEnumString(fail), QGLEnumString(zfail), QGLEnumString(zpass));
 #endif
     glStencilOp(fail, zfail, zpass);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1849,7 +1849,7 @@ static inline void qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, c
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexCoordPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
+        fprintf(QGLDebugFile(), "\tglTexCoordPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
 #endif
     glTexCoordPointer(size, type, stride, pointer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1863,7 +1863,7 @@ static inline void qglTexEnvi(GLenum target, GLenum pname, GLint param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnvi(target=%lu, pname=%lu, param=%ld)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexEnvi(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvi(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1877,7 +1877,7 @@ static inline void qglTexEnvx(GLenum target, GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnvx(target=%lu, pname=%lu, param=%ld)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexEnvx(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvx(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1891,7 +1891,7 @@ static inline void qglTexEnviv(GLenum target, GLenum pname, const GLint *params)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnviv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexEnviv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexEnviv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1905,7 +1905,7 @@ static inline void qglTexEnvxv(GLenum target, GLenum pname, const GLfixed *param
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexEnvxv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexEnvxv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexEnvxv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1919,7 +1919,7 @@ static inline void qglTexImage2D(GLenum target, GLint level, GLint internalforma
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexImage2D(target=%lu, level=%ld, internalformat=%ld, width=%ld, height=%ld, border=%ld, format=%lu, type=%lu, pixels=%p)\n", target, level, internalformat, width, height, border, format, type, pixels);
+        fprintf(QGLDebugFile(), "\tglTexImage2D(target=%lu, level=%ld, internalformat=%ld, width=%ld, height=%ld, border=%ld, format=%lu, type=%lu, pixels=%p)\n", target, level, internalformat, width, height, border, format, type, pixels);
 #endif
     glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1933,7 +1933,7 @@ static inline void qglTexParameteri(GLenum target, GLenum pname, GLint param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameteri(target=%lu, pname=%lu, param=%ld)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexParameteri(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexParameteri(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1947,7 +1947,7 @@ static inline void qglTexParameterx(GLenum target, GLenum pname, GLfixed param)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameterx(target=%lu, pname=%lu, param=%ld)\n", target, pname, param);
+        fprintf(QGLDebugFile(), "\tglTexParameterx(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexParameterx(target, pname, param);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1961,7 +1961,7 @@ static inline void qglTexParameteriv(GLenum target, GLenum pname, const GLint *p
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameteriv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexParameteriv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexParameteriv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1975,7 +1975,7 @@ static inline void qglTexParameterxv(GLenum target, GLenum pname, const GLfixed 
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexParameterxv(target=%lu, pname=%lu, params=%p)\n", target, pname, params);
+        fprintf(QGLDebugFile(), "\tglTexParameterxv(%s, %s, %p);\n", QGLEnumString(target), QGLEnumString(pname), params);
 #endif
     glTexParameterxv(target, pname, params);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -1989,7 +1989,7 @@ static inline void qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, G
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTexSubImage2D(target=%lu, level=%ld, xoffset=%ld, yoffset=%ld, width=%ld, height=%ld, format=%lu, type=%lu, pixels=%p)\n", target, level, xoffset, yoffset, width, height, format, type, pixels);
+	    fprintf(QGLDebugFile(), "\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n", QGLEnumString(target), level, xoffset, yoffset, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -2003,7 +2003,7 @@ static inline void qglTranslatex(GLfixed x, GLfixed y, GLfixed z)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glTranslatex(x=%ld, y=%ld, z=%ld)\n", x, y, z);
+        fprintf(QGLDebugFile(), "\tglTranslatex(%d, %d, %d);\n", x, y, z);
 #endif
     glTranslatex(x, y, z);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -2017,7 +2017,7 @@ static inline void qglVertexPointer(GLint size, GLenum type, GLsizei stride, con
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glVertexPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
+        fprintf(QGLDebugFile(), "\tglVertexPointer(size=%ld, type=%lu, stride=%ld, pointer=%p)\n", size, type, stride, pointer);
 #endif
     glVertexPointer(size, type, stride, pointer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -2031,7 +2031,7 @@ static inline void qglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glViewport(x=%ld, y=%ld, width=%ld, height=%ld)\n", x, y, width, height);
+        fprintf(QGLDebugFile(), "\tglViewport(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glViewport(x, y, width, height);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
@@ -2045,7 +2045,7 @@ static inline void qglPointSizePointerOES(GLenum type, GLsizei stride, const GLv
 {
 #if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
     if (QGLLogGLCalls)
-        fprintf(QGLDebugFile(), "glPointSizePointerOES(type=%lu, stride=%ld, pointer=%p)\n", type, stride, pointer);
+        fprintf(QGLDebugFile(), "\tglPointSizePointerOES(%s, %d, %p);\n", QGLEnumString(type), stride, pointer);
 #endif
     glPointSizePointerOES(type, stride, pointer);
 #if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
