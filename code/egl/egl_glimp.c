@@ -21,6 +21,8 @@
 #include "../client/client.h"
 #include "../renderer/tr_local.h"
 
+#define QGL_LOG_GL_CALLS 1
+
 EGLContext eglContext = NULL;
 EGLDisplay eglDisplay = NULL;
 EGLSurface eglSurface = NULL;
@@ -308,6 +310,59 @@ void GLimp_LogComment(char *comment)
 {
 	//fprintf(stderr, "%s: %s\n", __func__, comment);
 }
+
+#ifdef QGL_LOG_GL_CALLS
+unsigned int QGLLogGLCalls = 1;
+
+static FILE *qgllog;
+static FILE *qgldata;
+
+static int framecount;
+static int draw_count;
+static int matrix_count;
+
+void QGLLogNew(void)
+{
+	char buffer[1024];
+
+	if (qgllog && (qgllog != stderr)) {
+		printf("Finished dumping replay frame %d\n", framecount);
+		fclose(qgllog);
+	}
+
+	if (qgldata && (qgldata != stderr))
+		fclose(qgldata);
+
+	framecount++;
+
+	snprintf(buffer, sizeof(buffer), "replay_%04d.c", framecount);
+	qgllog = fopen(buffer, "w");
+	if (!qgllog) {
+		fprintf(stderr, "Error opening %s: %s\n",
+			buffer, strerror(errno));
+		qgllog = stderr;
+	}
+
+	snprintf(buffer, sizeof(buffer), "replay_%04d_data.c", framecount);
+	qgldata = fopen(buffer, "w");
+	if (!qgldata) {
+		fprintf(stderr, "Error opening %s: %s\n",
+			buffer, strerror(errno));
+		qgldata = stderr;
+	}
+
+	draw_count = 0;
+	matrix_count = 0;
+}
+
+FILE *QGLDebugFile(void)
+{
+	if (!qgllog)
+		QGLLogNew();
+
+	return qgllog;
+}
+#endif
 
 void GLimp_EndFrame(void)
 {
@@ -752,55 +807,6 @@ QGLEnumString(GLenum val)
 	return NULL;
 }
 
-unsigned int QGLLogGLCalls = 1;
-
-static int framecount;
-static int draw_count;
-static int matrix_count;
-static FILE *qgllog;
-static FILE *qgldata;
-
-void QGLLogNew(void)
-{
-	char buffer[1024];
-
-	if (qgllog && (qgllog != stderr)) {
-		printf("Finished dumping replay frame %d\n", framecount);
-		fclose(qgllog);
-	}
-
-	if (qgldata && (qgldata != stderr))
-		fclose(qgldata);
-
-	framecount++;
-
-	snprintf(buffer, sizeof(buffer), "replay_%04d.c", framecount);
-	qgllog = fopen(buffer, "w");
-	if (!qgllog) {
-		fprintf(stderr, "Error opening %s: %s\n",
-			buffer, strerror(errno));
-		qgllog = stderr;
-	}
-
-	snprintf(buffer, sizeof(buffer), "replay_%04d_data.c", framecount);
-	qgldata = fopen(buffer, "w");
-	if (!qgldata) {
-		fprintf(stderr, "Error opening %s: %s\n",
-			buffer, strerror(errno));
-		qgldata = stderr;
-	}
-
-	draw_count = 0;
-	matrix_count = 0;
-}
-
-FILE *QGLDebugFile(void)
-{
-	if (!qgllog)
-		QGLLogNew();
-
-	return qgllog;
-}
 #endif
 
 void
