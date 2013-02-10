@@ -404,11 +404,14 @@ void GLimp_LogComment(char *comment)
 
 void GLimp_EndFrame(void)
 {
+	fprintf(QGLDebugFile(), "\t//eglSwapBuffers(eglDisplay, eglSurface);\n");
 	eglSwapBuffers(eglDisplay, eglSurface);
 }
 
 void GLimp_Shutdown(void)
 {
+	fprintf(QGLDebugFile(), "\t/* %s */\n", __func__);
+
 	IN_Shutdown();
 
 	eglDestroyContext(eglDisplay, eglContext);
@@ -420,19 +423,25 @@ void GLimp_Shutdown(void)
 #if 1
 void qglCallList(GLuint list)
 {
+	fprintf(QGLDebugFile(), "\t%s(%d);\n", __func__, list);
 }
 
+/*
 void qglDrawBuffer(GLenum mode)
 {
+	fprintf(QGLDebugFile(), "\t%s(%s);\n", __func__, QGLEnumString(mode));
 }
 
 void qglLockArrays(GLint i, GLsizei size)
 {
+	fprintf(QGLDebugFile(), "\t%s(%d, %d);\n", __func__, i, size);
 }
 
 void qglUnlockArrays(void)
 {
+	fprintf(QGLDebugFile(), "\t%s();\n", __func__);
 }
+*/
 #endif
 
 #if 1
@@ -463,3 +472,762 @@ void GLimp_WakeRenderer(void *data)
 {
 }
 #endif
+
+#ifdef QGL_LOG_GL_CALLS
+#warning enabling GL logging.
+
+static struct {
+	GLenum value;
+	char *name;
+} GLEnumStrings[] = {
+	{GL_DEPTH_BUFFER_BIT, "GL_DEPTH_BUFFER_BIT"},
+	{GL_STENCIL_BUFFER_BIT, "GL_STENCIL_BUFFER_BIT"},
+	{GL_COLOR_BUFFER_BIT, "GL_COLOR_BUFFER_BIT"},
+	{GL_FALSE, "GL_FALSE"},
+	{GL_TRUE, "GL_TRUE"},
+	{GL_POINTS, "GL_POINTS"},
+	{GL_LINES, "GL_LINES"},
+	{GL_LINE_LOOP, "GL_LINE_LOOP"},
+	{GL_LINE_STRIP, "GL_LINE_STRIP"},
+	{GL_TRIANGLES, "GL_TRIANGLES"},
+	{GL_TRIANGLE_STRIP, "GL_TRIANGLE_STRIP"},
+	{GL_TRIANGLE_FAN, "GL_TRIANGLE_FAN"},
+	{GL_NEVER, "GL_NEVER"},
+	{GL_LESS, "GL_LESS"},
+	{GL_EQUAL, "GL_EQUAL"},
+	{GL_LEQUAL, "GL_LEQUAL"},
+	{GL_GREATER, "GL_GREATER"},
+	{GL_NOTEQUAL, "GL_NOTEQUAL"},
+	{GL_GEQUAL, "GL_GEQUAL"},
+	{GL_ALWAYS, "GL_ALWAYS"},
+	{GL_ZERO, "GL_ZERO"},
+	{GL_ONE, "GL_ONE"},
+	{GL_SRC_COLOR, "GL_SRC_COLOR"},
+	{GL_ONE_MINUS_SRC_COLOR, "GL_ONE_MINUS_SRC_COLOR"},
+	{GL_SRC_ALPHA, "GL_SRC_ALPHA"},
+	{GL_ONE_MINUS_SRC_ALPHA, "GL_ONE_MINUS_SRC_ALPHA"},
+	{GL_DST_ALPHA, "GL_DST_ALPHA"},
+	{GL_ONE_MINUS_DST_ALPHA, "GL_ONE_MINUS_DST_ALPHA"},
+	{GL_DST_COLOR, "GL_DST_COLOR"},
+	{GL_ONE_MINUS_DST_COLOR, "GL_ONE_MINUS_DST_COLOR"},
+	{GL_SRC_ALPHA_SATURATE, "GL_SRC_ALPHA_SATURATE"},
+	{GL_CLIP_PLANE0, "GL_CLIP_PLANE0"},
+	{GL_CLIP_PLANE1, "GL_CLIP_PLANE1"},
+	{GL_CLIP_PLANE2, "GL_CLIP_PLANE2"},
+	{GL_CLIP_PLANE3, "GL_CLIP_PLANE3"},
+	{GL_CLIP_PLANE4, "GL_CLIP_PLANE4"},
+	{GL_CLIP_PLANE5, "GL_CLIP_PLANE5"},
+	{GL_FRONT, "GL_FRONT"},
+	{GL_BACK, "GL_BACK"},
+	{GL_FRONT_AND_BACK, "GL_FRONT_AND_BACK"},
+	{GL_FOG, "GL_FOG"},
+	{GL_LIGHTING, "GL_LIGHTING"},
+	{GL_TEXTURE_2D, "GL_TEXTURE_2D"},
+	{GL_CULL_FACE, "GL_CULL_FACE"},
+	{GL_ALPHA_TEST, "GL_ALPHA_TEST"},
+	{GL_BLEND, "GL_BLEND"},
+	{GL_COLOR_LOGIC_OP, "GL_COLOR_LOGIC_OP"},
+	{GL_DITHER, "GL_DITHER"},
+	{GL_STENCIL_TEST, "GL_STENCIL_TEST"},
+	{GL_DEPTH_TEST, "GL_DEPTH_TEST"},
+	{GL_POINT_SMOOTH, "GL_POINT_SMOOTH"},
+	{GL_LINE_SMOOTH, "GL_LINE_SMOOTH"},
+	{GL_SCISSOR_TEST, "GL_SCISSOR_TEST"},
+	{GL_COLOR_MATERIAL, "GL_COLOR_MATERIAL"},
+	{GL_NORMALIZE, "GL_NORMALIZE"},
+	{GL_RESCALE_NORMAL, "GL_RESCALE_NORMAL"},
+	{GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
+	{GL_VERTEX_ARRAY, "GL_VERTEX_ARRAY"},
+	{GL_NORMAL_ARRAY, "GL_NORMAL_ARRAY"},
+	{GL_COLOR_ARRAY, "GL_COLOR_ARRAY"},
+	{GL_TEXTURE_COORD_ARRAY, "GL_TEXTURE_COORD_ARRAY"},
+	{GL_MULTISAMPLE, "GL_MULTISAMPLE"},
+	{GL_SAMPLE_ALPHA_TO_COVERAGE, "GL_SAMPLE_ALPHA_TO_COVERAGE"},
+	{GL_SAMPLE_ALPHA_TO_ONE, "GL_SAMPLE_ALPHA_TO_ONE"},
+	{GL_SAMPLE_COVERAGE, "GL_SAMPLE_COVERAGE"},
+	{GL_NO_ERROR, "GL_NO_ERROR"},
+	{GL_INVALID_ENUM, "GL_INVALID_ENUM"},
+	{GL_INVALID_VALUE, "GL_INVALID_VALUE"},
+	{GL_INVALID_OPERATION, "GL_INVALID_OPERATION"},
+	{GL_STACK_OVERFLOW, "GL_STACK_OVERFLOW"},
+	{GL_STACK_UNDERFLOW, "GL_STACK_UNDERFLOW"},
+	{GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"},
+	{GL_EXP, "GL_EXP"},
+	{GL_EXP2, "GL_EXP2"},
+	{GL_FOG_DENSITY, "GL_FOG_DENSITY"},
+	{GL_FOG_START, "GL_FOG_START"},
+	{GL_FOG_END, "GL_FOG_END"},
+	{GL_FOG_MODE, "GL_FOG_MODE"},
+	{GL_FOG_COLOR, "GL_FOG_COLOR"},
+	{GL_CW, "GL_CW"},
+	{GL_CCW, "GL_CCW"},
+	{GL_CURRENT_COLOR, "GL_CURRENT_COLOR"},
+	{GL_CURRENT_NORMAL, "GL_CURRENT_NORMAL"},
+	{GL_CURRENT_TEXTURE_COORDS, "GL_CURRENT_TEXTURE_COORDS"},
+	{GL_POINT_SIZE, "GL_POINT_SIZE"},
+	{GL_POINT_SIZE_MIN, "GL_POINT_SIZE_MIN"},
+	{GL_POINT_SIZE_MAX, "GL_POINT_SIZE_MAX"},
+	{GL_POINT_FADE_THRESHOLD_SIZE, "GL_POINT_FADE_THRESHOLD_SIZE"},
+	{GL_POINT_DISTANCE_ATTENUATION, "GL_POINT_DISTANCE_ATTENUATION"},
+	{GL_SMOOTH_POINT_SIZE_RANGE, "GL_SMOOTH_POINT_SIZE_RANGE"},
+	{GL_LINE_WIDTH, "GL_LINE_WIDTH"},
+	{GL_SMOOTH_LINE_WIDTH_RANGE, "GL_SMOOTH_LINE_WIDTH_RANGE"},
+	{GL_ALIASED_POINT_SIZE_RANGE, "GL_ALIASED_POINT_SIZE_RANGE"},
+	{GL_ALIASED_LINE_WIDTH_RANGE, "GL_ALIASED_LINE_WIDTH_RANGE"},
+	{GL_CULL_FACE_MODE, "GL_CULL_FACE_MODE"},
+	{GL_FRONT_FACE, "GL_FRONT_FACE"},
+	{GL_SHADE_MODEL, "GL_SHADE_MODEL"},
+	{GL_DEPTH_RANGE, "GL_DEPTH_RANGE"},
+	{GL_DEPTH_WRITEMASK, "GL_DEPTH_WRITEMASK"},
+	{GL_DEPTH_CLEAR_VALUE, "GL_DEPTH_CLEAR_VALUE"},
+	{GL_DEPTH_FUNC, "GL_DEPTH_FUNC"},
+	{GL_STENCIL_CLEAR_VALUE, "GL_STENCIL_CLEAR_VALUE"},
+	{GL_STENCIL_FUNC, "GL_STENCIL_FUNC"},
+	{GL_STENCIL_VALUE_MASK, "GL_STENCIL_VALUE_MASK"},
+	{GL_STENCIL_FAIL, "GL_STENCIL_FAIL"},
+	{GL_STENCIL_PASS_DEPTH_FAIL, "GL_STENCIL_PASS_DEPTH_FAIL"},
+	{GL_STENCIL_PASS_DEPTH_PASS, "GL_STENCIL_PASS_DEPTH_PASS"},
+	{GL_STENCIL_REF, "GL_STENCIL_REF"},
+	{GL_STENCIL_WRITEMASK, "GL_STENCIL_WRITEMASK"},
+	{GL_MATRIX_MODE, "GL_MATRIX_MODE"},
+	{GL_VIEWPORT, "GL_VIEWPORT"},
+	{GL_MODELVIEW_STACK_DEPTH, "GL_MODELVIEW_STACK_DEPTH"},
+	{GL_PROJECTION_STACK_DEPTH, "GL_PROJECTION_STACK_DEPTH"},
+	{GL_TEXTURE_STACK_DEPTH, "GL_TEXTURE_STACK_DEPTH"},
+	{GL_MODELVIEW_MATRIX, "GL_MODELVIEW_MATRIX"},
+	{GL_PROJECTION_MATRIX, "GL_PROJECTION_MATRIX"},
+	{GL_TEXTURE_MATRIX, "GL_TEXTURE_MATRIX"},
+	{GL_ALPHA_TEST_FUNC, "GL_ALPHA_TEST_FUNC"},
+	{GL_ALPHA_TEST_REF, "GL_ALPHA_TEST_REF"},
+	{GL_BLEND_DST, "GL_BLEND_DST"},
+	{GL_BLEND_SRC, "GL_BLEND_SRC"},
+	{GL_LOGIC_OP_MODE, "GL_LOGIC_OP_MODE"},
+	{GL_SCISSOR_BOX, "GL_SCISSOR_BOX"},
+	{GL_SCISSOR_TEST, "GL_SCISSOR_TEST"},
+	{GL_COLOR_CLEAR_VALUE, "GL_COLOR_CLEAR_VALUE"},
+	{GL_COLOR_WRITEMASK, "GL_COLOR_WRITEMASK"},
+	{GL_UNPACK_ALIGNMENT, "GL_UNPACK_ALIGNMENT"},
+	{GL_PACK_ALIGNMENT, "GL_PACK_ALIGNMENT"},
+	{GL_MAX_LIGHTS, "GL_MAX_LIGHTS"},
+	{GL_MAX_CLIP_PLANES, "GL_MAX_CLIP_PLANES"},
+	{GL_MAX_TEXTURE_SIZE, "GL_MAX_TEXTURE_SIZE"},
+	{GL_MAX_MODELVIEW_STACK_DEPTH, "GL_MAX_MODELVIEW_STACK_DEPTH"},
+	{GL_MAX_PROJECTION_STACK_DEPTH, "GL_MAX_PROJECTION_STACK_DEPTH"},
+	{GL_MAX_TEXTURE_STACK_DEPTH, "GL_MAX_TEXTURE_STACK_DEPTH"},
+	{GL_MAX_VIEWPORT_DIMS, "GL_MAX_VIEWPORT_DIMS"},
+	{GL_MAX_TEXTURE_UNITS, "GL_MAX_TEXTURE_UNITS"},
+	{GL_SUBPIXEL_BITS, "GL_SUBPIXEL_BITS"},
+	{GL_RED_BITS, "GL_RED_BITS"},
+	{GL_GREEN_BITS, "GL_GREEN_BITS"},
+	{GL_BLUE_BITS, "GL_BLUE_BITS"},
+	{GL_ALPHA_BITS, "GL_ALPHA_BITS"},
+	{GL_DEPTH_BITS, "GL_DEPTH_BITS"},
+	{GL_STENCIL_BITS, "GL_STENCIL_BITS"},
+	{GL_POLYGON_OFFSET_UNITS, "GL_POLYGON_OFFSET_UNITS"},
+	{GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
+	{GL_POLYGON_OFFSET_FACTOR, "GL_POLYGON_OFFSET_FACTOR"},
+	{GL_TEXTURE_BINDING_2D, "GL_TEXTURE_BINDING_2D"},
+	{GL_VERTEX_ARRAY_SIZE, "GL_VERTEX_ARRAY_SIZE"},
+	{GL_VERTEX_ARRAY_TYPE, "GL_VERTEX_ARRAY_TYPE"},
+	{GL_VERTEX_ARRAY_STRIDE, "GL_VERTEX_ARRAY_STRIDE"},
+	{GL_NORMAL_ARRAY_TYPE, "GL_NORMAL_ARRAY_TYPE"},
+	{GL_NORMAL_ARRAY_STRIDE, "GL_NORMAL_ARRAY_STRIDE"},
+	{GL_COLOR_ARRAY_SIZE, "GL_COLOR_ARRAY_SIZE"},
+	{GL_COLOR_ARRAY_TYPE, "GL_COLOR_ARRAY_TYPE"},
+	{GL_COLOR_ARRAY_STRIDE, "GL_COLOR_ARRAY_STRIDE"},
+	{GL_TEXTURE_COORD_ARRAY_SIZE, "GL_TEXTURE_COORD_ARRAY_SIZE"},
+	{GL_TEXTURE_COORD_ARRAY_TYPE, "GL_TEXTURE_COORD_ARRAY_TYPE"},
+	{GL_TEXTURE_COORD_ARRAY_STRIDE, "GL_TEXTURE_COORD_ARRAY_STRIDE"},
+	{GL_VERTEX_ARRAY_POINTER, "GL_VERTEX_ARRAY_POINTER"},
+	{GL_NORMAL_ARRAY_POINTER, "GL_NORMAL_ARRAY_POINTER"},
+	{GL_COLOR_ARRAY_POINTER, "GL_COLOR_ARRAY_POINTER"},
+	{GL_TEXTURE_COORD_ARRAY_POINTER, "GL_TEXTURE_COORD_ARRAY_POINTER"},
+	{GL_SAMPLE_BUFFERS, "GL_SAMPLE_BUFFERS"},
+	{GL_SAMPLES, "GL_SAMPLES"},
+	{GL_SAMPLE_COVERAGE_VALUE, "GL_SAMPLE_COVERAGE_VALUE"},
+	{GL_SAMPLE_COVERAGE_INVERT, "GL_SAMPLE_COVERAGE_INVERT"},
+	{GL_NUM_COMPRESSED_TEXTURE_FORMATS, "GL_NUM_COMPRESSED_TEXTURE_FORMATS"},
+	{GL_COMPRESSED_TEXTURE_FORMATS, "GL_COMPRESSED_TEXTURE_FORMATS"},
+	{GL_DONT_CARE, "GL_DONT_CARE"},
+	{GL_FASTEST, "GL_FASTEST"},
+	{GL_NICEST, "GL_NICEST"},
+	{GL_PERSPECTIVE_CORRECTION_HINT, "GL_PERSPECTIVE_CORRECTION_HINT"},
+	{GL_POINT_SMOOTH_HINT, "GL_POINT_SMOOTH_HINT"},
+	{GL_LINE_SMOOTH_HINT, "GL_LINE_SMOOTH_HINT"},
+	{GL_FOG_HINT, "GL_FOG_HINT"},
+	{GL_GENERATE_MIPMAP_HINT, "GL_GENERATE_MIPMAP_HINT"},
+	{GL_LIGHT_MODEL_AMBIENT, "GL_LIGHT_MODEL_AMBIENT"},
+	{GL_LIGHT_MODEL_TWO_SIDE, "GL_LIGHT_MODEL_TWO_SIDE"},
+	{GL_AMBIENT, "GL_AMBIENT"},
+	{GL_DIFFUSE, "GL_DIFFUSE"},
+	{GL_SPECULAR, "GL_SPECULAR"},
+	{GL_POSITION, "GL_POSITION"},
+	{GL_SPOT_DIRECTION, "GL_SPOT_DIRECTION"},
+	{GL_SPOT_EXPONENT, "GL_SPOT_EXPONENT"},
+	{GL_SPOT_CUTOFF, "GL_SPOT_CUTOFF"},
+	{GL_CONSTANT_ATTENUATION, "GL_CONSTANT_ATTENUATION"},
+	{GL_LINEAR_ATTENUATION, "GL_LINEAR_ATTENUATION"},
+	{GL_QUADRATIC_ATTENUATION, "GL_QUADRATIC_ATTENUATION"},
+	{GL_BYTE, "GL_BYTE"},
+	{GL_UNSIGNED_BYTE, "GL_UNSIGNED_BYTE"},
+	{GL_SHORT, "GL_SHORT"},
+	{GL_UNSIGNED_SHORT, "GL_UNSIGNED_SHORT"},
+	{GL_FLOAT, "GL_FLOAT"},
+	{GL_FIXED, "GL_FIXED"},
+	{GL_CLEAR, "GL_CLEAR"},
+	{GL_AND, "GL_AND"},
+	{GL_AND_REVERSE, "GL_AND_REVERSE"},
+	{GL_COPY, "GL_COPY"},
+	{GL_AND_INVERTED, "GL_AND_INVERTED"},
+	{GL_NOOP, "GL_NOOP"},
+	{GL_XOR, "GL_XOR"},
+	{GL_OR, "GL_OR"},
+	{GL_NOR, "GL_NOR"},
+	{GL_EQUIV, "GL_EQUIV"},
+	{GL_INVERT, "GL_INVERT"},
+	{GL_OR_REVERSE, "GL_OR_REVERSE"},
+	{GL_COPY_INVERTED, "GL_COPY_INVERTED"},
+	{GL_OR_INVERTED, "GL_OR_INVERTED"},
+	{GL_NAND, "GL_NAND"},
+	{GL_SET, "GL_SET"},
+	{GL_EMISSION, "GL_EMISSION"},
+	{GL_SHININESS, "GL_SHININESS"},
+	{GL_AMBIENT_AND_DIFFUSE, "GL_AMBIENT_AND_DIFFUSE"},
+	{GL_MODELVIEW, "GL_MODELVIEW"},
+	{GL_PROJECTION, "GL_PROJECTION"},
+	{GL_TEXTURE, "GL_TEXTURE"},
+	{GL_ALPHA, "GL_ALPHA"},
+	{GL_RGB, "GL_RGB"},
+	{GL_RGBA, "GL_RGBA"},
+	{GL_LUMINANCE, "GL_LUMINANCE"},
+	{GL_LUMINANCE_ALPHA, "GL_LUMINANCE_ALPHA"},
+	{GL_UNPACK_ALIGNMENT, "GL_UNPACK_ALIGNMENT"},
+	{GL_PACK_ALIGNMENT, "GL_PACK_ALIGNMENT"},
+	{GL_UNSIGNED_SHORT_4_4_4_4, "GL_UNSIGNED_SHORT_4_4_4_4"},
+	{GL_UNSIGNED_SHORT_5_5_5_1, "GL_UNSIGNED_SHORT_5_5_5_1"},
+	{GL_UNSIGNED_SHORT_5_6_5, "GL_UNSIGNED_SHORT_5_6_5"},
+	{GL_FLAT, "GL_FLAT"},
+	{GL_SMOOTH, "GL_SMOOTH"},
+	{GL_KEEP, "GL_KEEP"},
+	{GL_REPLACE, "GL_REPLACE"},
+	{GL_INCR, "GL_INCR"},
+	{GL_DECR, "GL_DECR"},
+	{GL_VENDOR, "GL_VENDOR"},
+	{GL_RENDERER, "GL_RENDERER"},
+	{GL_VERSION, "GL_VERSION"},
+	{GL_EXTENSIONS, "GL_EXTENSIONS"},
+	{GL_MODULATE, "GL_MODULATE"},
+	{GL_DECAL, "GL_DECAL"},
+	{GL_ADD, "GL_ADD"},
+	{GL_TEXTURE_ENV_MODE, "GL_TEXTURE_ENV_MODE"},
+	{GL_TEXTURE_ENV_COLOR, "GL_TEXTURE_ENV_COLOR"},
+	{GL_TEXTURE_ENV, "GL_TEXTURE_ENV"},
+	{GL_NEAREST, "GL_NEAREST"},
+	{GL_LINEAR, "GL_LINEAR"},
+	{GL_NEAREST_MIPMAP_NEAREST, "GL_NEAREST_MIPMAP_NEAREST"},
+	{GL_LINEAR_MIPMAP_NEAREST, "GL_LINEAR_MIPMAP_NEAREST"},
+	{GL_NEAREST_MIPMAP_LINEAR, "GL_NEAREST_MIPMAP_LINEAR"},
+	{GL_LINEAR_MIPMAP_LINEAR, "GL_LINEAR_MIPMAP_LINEAR"},
+	{GL_TEXTURE_MAG_FILTER, "GL_TEXTURE_MAG_FILTER"},
+	{GL_TEXTURE_MIN_FILTER, "GL_TEXTURE_MIN_FILTER"},
+	{GL_TEXTURE_WRAP_S, "GL_TEXTURE_WRAP_S"},
+	{GL_TEXTURE_WRAP_T, "GL_TEXTURE_WRAP_T"},
+	{GL_GENERATE_MIPMAP, "GL_GENERATE_MIPMAP"},
+	{GL_TEXTURE0, "GL_TEXTURE0"},
+	{GL_TEXTURE1, "GL_TEXTURE1"},
+	{GL_TEXTURE2, "GL_TEXTURE2"},
+	{GL_TEXTURE3, "GL_TEXTURE3"},
+	{GL_TEXTURE4, "GL_TEXTURE4"},
+	{GL_TEXTURE5, "GL_TEXTURE5"},
+	{GL_TEXTURE6, "GL_TEXTURE6"},
+	{GL_TEXTURE7, "GL_TEXTURE7"},
+	{GL_TEXTURE8, "GL_TEXTURE8"},
+	{GL_TEXTURE9, "GL_TEXTURE9"},
+	{GL_TEXTURE10, "GL_TEXTURE10"},
+	{GL_TEXTURE11, "GL_TEXTURE11"},
+	{GL_TEXTURE12, "GL_TEXTURE12"},
+	{GL_TEXTURE13, "GL_TEXTURE13"},
+	{GL_TEXTURE14, "GL_TEXTURE14"},
+	{GL_TEXTURE15, "GL_TEXTURE15"},
+	{GL_TEXTURE16, "GL_TEXTURE16"},
+	{GL_TEXTURE17, "GL_TEXTURE17"},
+	{GL_TEXTURE18, "GL_TEXTURE18"},
+	{GL_TEXTURE19, "GL_TEXTURE19"},
+	{GL_TEXTURE20, "GL_TEXTURE20"},
+	{GL_TEXTURE21, "GL_TEXTURE21"},
+	{GL_TEXTURE22, "GL_TEXTURE22"},
+	{GL_TEXTURE23, "GL_TEXTURE23"},
+	{GL_TEXTURE24, "GL_TEXTURE24"},
+	{GL_TEXTURE25, "GL_TEXTURE25"},
+	{GL_TEXTURE26, "GL_TEXTURE26"},
+	{GL_TEXTURE27, "GL_TEXTURE27"},
+	{GL_TEXTURE28, "GL_TEXTURE28"},
+	{GL_TEXTURE29, "GL_TEXTURE29"},
+	{GL_TEXTURE30, "GL_TEXTURE30"},
+	{GL_TEXTURE31, "GL_TEXTURE31"},
+	{GL_ACTIVE_TEXTURE, "GL_ACTIVE_TEXTURE"},
+	{GL_CLIENT_ACTIVE_TEXTURE, "GL_CLIENT_ACTIVE_TEXTURE"},
+	{GL_REPEAT, "GL_REPEAT"},
+	{GL_CLAMP_TO_EDGE, "GL_CLAMP_TO_EDGE"},
+	{GL_LIGHT0, "GL_LIGHT0"},
+	{GL_LIGHT1, "GL_LIGHT1"},
+	{GL_LIGHT2, "GL_LIGHT2"},
+	{GL_LIGHT3, "GL_LIGHT3"},
+	{GL_LIGHT4, "GL_LIGHT4"},
+	{GL_LIGHT5, "GL_LIGHT5"},
+	{GL_LIGHT6, "GL_LIGHT6"},
+	{GL_LIGHT7, "GL_LIGHT7"},
+	{GL_ARRAY_BUFFER, "GL_ARRAY_BUFFER"},
+	{GL_ELEMENT_ARRAY_BUFFER, "GL_ELEMENT_ARRAY_BUFFER"},
+	{GL_ARRAY_BUFFER_BINDING, "GL_ARRAY_BUFFER_BINDING"},
+	{GL_ELEMENT_ARRAY_BUFFER_BINDING, "GL_ELEMENT_ARRAY_BUFFER_BINDING"},
+	{GL_VERTEX_ARRAY_BUFFER_BINDING, "GL_VERTEX_ARRAY_BUFFER_BINDING"},
+	{GL_NORMAL_ARRAY_BUFFER_BINDING, "GL_NORMAL_ARRAY_BUFFER_BINDING"},
+	{GL_COLOR_ARRAY_BUFFER_BINDING, "GL_COLOR_ARRAY_BUFFER_BINDING"},
+	{GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING, "GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING"},
+	{GL_STATIC_DRAW, "GL_STATIC_DRAW"},
+	{GL_DYNAMIC_DRAW, "GL_DYNAMIC_DRAW"},
+	{GL_BUFFER_SIZE, "GL_BUFFER_SIZE"},
+	{GL_BUFFER_USAGE, "GL_BUFFER_USAGE"},
+	{GL_SUBTRACT, "GL_SUBTRACT"},
+	{GL_COMBINE, "GL_COMBINE"},
+	{GL_COMBINE_RGB, "GL_COMBINE_RGB"},
+	{GL_COMBINE_ALPHA, "GL_COMBINE_ALPHA"},
+	{GL_RGB_SCALE, "GL_RGB_SCALE"},
+	{GL_ADD_SIGNED, "GL_ADD_SIGNED"},
+	{GL_INTERPOLATE, "GL_INTERPOLATE"},
+	{GL_CONSTANT, "GL_CONSTANT"},
+	{GL_PRIMARY_COLOR, "GL_PRIMARY_COLOR"},
+	{GL_PREVIOUS, "GL_PREVIOUS"},
+	{GL_OPERAND0_RGB, "GL_OPERAND0_RGB"},
+	{GL_OPERAND1_RGB, "GL_OPERAND1_RGB"},
+	{GL_OPERAND2_RGB, "GL_OPERAND2_RGB"},
+	{GL_OPERAND0_ALPHA, "GL_OPERAND0_ALPHA"},
+	{GL_OPERAND1_ALPHA, "GL_OPERAND1_ALPHA"},
+	{GL_OPERAND2_ALPHA, "GL_OPERAND2_ALPHA"},
+	{GL_ALPHA_SCALE, "GL_ALPHA_SCALE"},
+	{GL_SRC0_RGB, "GL_SRC0_RGB"},
+	{GL_SRC1_RGB, "GL_SRC1_RGB"},
+	{GL_SRC2_RGB, "GL_SRC2_RGB"},
+	{GL_SRC0_ALPHA, "GL_SRC0_ALPHA"},
+	{GL_SRC1_ALPHA, "GL_SRC1_ALPHA"},
+	{GL_SRC2_ALPHA, "GL_SRC2_ALPHA"},
+	{GL_DOT3_RGB, "GL_DOT3_RGB"},
+	{GL_DOT3_RGBA, "GL_DOT3_RGBA"},
+	{GL_IMPLEMENTATION_COLOR_READ_TYPE_OES, "GL_IMPLEMENTATION_COLOR_READ_TYPE_OES"},
+	{GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES, "GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES"},
+	{GL_PALETTE4_RGB8_OES, "GL_PALETTE4_RGB8_OES"},
+	{GL_PALETTE4_RGBA8_OES, "GL_PALETTE4_RGBA8_OES"},
+	{GL_PALETTE4_R5_G6_B5_OES, "GL_PALETTE4_R5_G6_B5_OES"},
+	{GL_PALETTE4_RGBA4_OES, "GL_PALETTE4_RGBA4_OES"},
+	{GL_PALETTE4_RGB5_A1_OES, "GL_PALETTE4_RGB5_A1_OES"},
+	{GL_PALETTE8_RGB8_OES, "GL_PALETTE8_RGB8_OES"},
+	{GL_PALETTE8_RGBA8_OES, "GL_PALETTE8_RGBA8_OES"},
+	{GL_PALETTE8_R5_G6_B5_OES, "GL_PALETTE8_R5_G6_B5_OES"},
+	{GL_PALETTE8_RGBA4_OES, "GL_PALETTE8_RGBA4_OES"},
+	{GL_PALETTE8_RGB5_A1_OES, "GL_PALETTE8_RGB5_A1_OES"},
+	{GL_POINT_SIZE_ARRAY_OES, "GL_POINT_SIZE_ARRAY_OES"},
+	{GL_POINT_SIZE_ARRAY_TYPE_OES, "GL_POINT_SIZE_ARRAY_TYPE_OES"},
+	{GL_POINT_SIZE_ARRAY_STRIDE_OES, "GL_POINT_SIZE_ARRAY_STRIDE_OES"},
+	{GL_POINT_SIZE_ARRAY_POINTER_OES, "GL_POINT_SIZE_ARRAY_POINTER_OES"},
+	{GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES, "GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES"},
+	{GL_POINT_SPRITE_OES, "GL_POINT_SPRITE_OES"},
+	{GL_COORD_REPLACE_OES, "GL_COORD_REPLACE_OES"},
+	{GL_OES_read_format, "GL_OES_read_format"},
+	{GL_OES_compressed_paletted_texture, "GL_OES_compressed_paletted_texture"},
+	{GL_OES_point_size_array, "GL_OES_point_size_array"},
+	{GL_OES_point_sprite, "GL_OES_point_sprite"},
+	{0, NULL},
+};
+
+char *
+QGLEnumString(GLenum val)
+{
+	int i;
+
+	for (i = 0; GLEnumStrings[i].name; i++)
+		if (GLEnumStrings[i].value == val)
+			return GLEnumStrings[i].name;
+
+	return NULL;
+}
+
+unsigned int QGLLogGLCalls = 1;
+
+static int framecount;
+static int draw_count;
+static int matrix_count;
+static FILE *qgllog;
+static FILE *qgldata;
+
+void QGLLogNew(void)
+{
+	char buffer[1024];
+
+	if (qgllog && (qgllog != stderr)) {
+		printf("Finished dumping replay frame %d\n", framecount);
+		fclose(qgllog);
+	}
+
+	if (qgldata && (qgldata != stderr))
+		fclose(qgldata);
+
+	framecount++;
+
+	snprintf(buffer, sizeof(buffer), "replay_%04d.c", framecount);
+	qgllog = fopen(buffer, "w");
+	if (!qgllog) {
+		fprintf(stderr, "Error opening %s: %s\n",
+			buffer, strerror(errno));
+		qgllog = stderr;
+	}
+
+	snprintf(buffer, sizeof(buffer), "replay_%04d_data.c", framecount);
+	qgldata = fopen(buffer, "w");
+	if (!qgldata) {
+		fprintf(stderr, "Error opening %s: %s\n",
+			buffer, strerror(errno));
+		qgldata = stderr;
+	}
+
+	draw_count = 0;
+	matrix_count = 0;
+}
+
+FILE *QGLDebugFile(void)
+{
+	if (!qgllog)
+		QGLLogNew();
+
+	return qgllog;
+}
+
+void qglDrawBuffer(GLenum mode)
+{
+	QGLLogNew();
+}
+
+#endif
+
+#undef glTexCoordPointer
+
+static int vertices_count;
+int bound_texture;
+
+void qglNumVertices(GLint count)
+{
+	vertices_count = count;
+}
+
+void qglLockArrays(GLint j, GLsizei size)
+{
+}
+
+void qglUnlockArrays(void)
+{
+}
+
+const float *tex_coords_ptr[2];
+int current_texture;
+
+// void glTexCoordPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+void qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (QGLLogGLCalls) {
+		tex_coords_ptr[current_texture] = pointer;
+
+		fprintf(qgllog, "\tglTexCoordPointer(%d, %s, %d, TextureCoordinates_%d_%d);\n",
+			size, QGLEnumString(type), stride, draw_count, current_texture);
+	}
+#endif
+    glTexCoordPointer(size, type, stride, pointer);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glTexCoordPointer");
+#endif
+}
+
+#undef glColorPointer
+const unsigned char *color_ptr;
+// void glColorPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+void qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (QGLLogGLCalls) {
+		color_ptr = pointer;
+
+		fprintf(QGLDebugFile(), "\tglColorPointer(%d, %s, %d, Colors_%d);\n", size,
+			QGLEnumString(type), stride, draw_count);
+	}
+#endif
+    glColorPointer(size, type, stride, pointer);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glColorPointer");
+#endif
+}
+
+#undef glVertexPointer
+const float *vertices_ptr;
+int vertices_stride;
+int vertices_new;
+// void glVertexPointer (GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
+void qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+
+	if (QGLLogGLCalls) {
+		vertices_ptr = pointer;
+		vertices_stride = stride;
+		vertices_new = 1;
+
+		fprintf(QGLDebugFile(), "\tglVertexPointer(%d, %s, %d, Vertices_%d);\n",
+			size, QGLEnumString(type), stride, draw_count);
+	}
+#endif
+    glVertexPointer(size, type, stride, pointer);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glVertexPointer");
+#endif
+}
+
+void
+data_print(int count)
+{
+	int i;
+
+	if (color_ptr) {
+		const unsigned char *colors = color_ptr;
+
+		fprintf(qgldata, "\tunsigned char Colors_%d[%d][4] = {\n",
+			draw_count, count);
+
+		for (i = 0; i < count; i++)
+			fprintf(qgldata, "\t\t{0x%02X, 0x%02X, 0x%02X, 0x%02X},\n",
+				colors[4 * i], colors[4 * i + 1],
+				colors[4 * i + 2], colors[4 * i + 3]);
+
+		fprintf(qgldata, "\t};\n");
+	}
+
+	if (tex_coords_ptr[0]) {
+		const float *coords = tex_coords_ptr[0];
+
+		fprintf(qgldata, "\tfloat TextureCoordinates_%d_%d[%d][2] = {\n",
+			draw_count, 0, count);
+		for (i = 0; i < count; i++)
+			fprintf(qgldata, "\t\t{%a, %a},\n",
+				coords[2 * i], coords[2 * i + 1]);
+		fprintf(qgldata, "\t};\n");
+	}
+
+	if (tex_coords_ptr[1]) {
+		const float *coords = tex_coords_ptr[1];
+
+		fprintf(qgldata, "\tfloat TextureCoordinates_%d_%d[%d][2] = {\n",
+			draw_count, 1, count);
+		for (i = 0; i < count; i++)
+			fprintf(qgldata, "\t\t{%a, %a},\n",
+				coords[2 * i], coords[2 * i + 1]);
+		fprintf(qgldata, "\t};\n");
+	}
+
+
+	if (vertices_new) {
+		const float *vertices = vertices_ptr;
+		int i;
+
+		if (vertices_stride) {
+			fprintf(qgldata, "\tfloat Vertices_%d[%d][4] = {\n",
+				draw_count, count);
+			for (i = 0; i < count; i++)
+				fprintf(qgldata, "\t\t{%a, %a, %a, %a},\n",
+					vertices[4 * i], vertices[4 * i + 1],
+					vertices[4 * i + 2], vertices[4 * i + 3]);
+		} else {
+			fprintf(qgldata, "\tfloat Vertices_%d[%d][2] = {\n",
+				draw_count, count);
+			for (i = 0; i < count; i++)
+				fprintf(qgldata, "\t\t{%a, %a},\n",
+					vertices[2 * i], vertices[2 * i + 1]);
+		}
+		fprintf(qgldata, "\t};\n");
+		vertices_new = 0;
+	}
+
+
+
+}
+
+#undef glDrawElements
+// void glDrawElements (GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
+void qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (QGLLogGLCalls) {
+		const unsigned short *indices = ptr;
+		int i;
+
+		data_print(count);
+
+		fprintf(qgldata, "\tunsigned short Indices_%d[%d] = {\n", draw_count, count);
+		for (i = 0; i < count; i++) {
+			if (!(i % 8))
+				fprintf(qgldata, "\t\t0x%04X,", indices[i]);
+			else if ((i % 8) == 7)
+				fprintf(qgldata, " 0x%04X,\n", indices[i]);
+			else
+				fprintf(qgldata, " 0x%04X,", indices[i]);
+		}
+
+		if ((i % 8))
+			fprintf(qgldata, "\n");
+		fprintf(qgldata, "\t};\n");
+
+		fprintf(QGLDebugFile(), "\tglDrawElements(%s, %d, %s, Indices_%d);\n",
+			QGLEnumString(mode), count, QGLEnumString(type), draw_count);
+		draw_count++;
+
+		current_texture = 0;
+		tex_coords_ptr[0] = NULL;
+		tex_coords_ptr[1] = NULL;
+	}
+#endif
+    glDrawElements(mode, count, type, ptr);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glDrawElements");
+#endif
+}
+
+#undef glLoadMatrixf
+// void glLoadMatrixf (const GLfloat *m);
+void qglLoadMatrixf(const GLfloat *m)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (QGLLogGLCalls) {
+		fprintf(qgllog, "\tfloat Matrix_%d[16] = {\n", matrix_count);
+		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
+		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[4], m[5], m[6], m[7]);
+		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[8], m[9], m[10], m[11]);
+		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[12], m[13], m[14], m[15]);
+		fprintf(qgllog, "\t};\n");
+		fprintf(qgllog, "\tglLoadMatrixf(Matrix_%d);\n", matrix_count);
+		matrix_count++;
+	}
+#endif
+    glLoadMatrixf(m);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glLoadMatrixf");
+#endif
+}
+
+#undef glTexImage2D
+// void glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+void
+qglTexImage2D(GLenum target, GLint level, GLint internalformat,
+	      GLsizei width, GLsizei height, GLint border,
+	      GLenum format, GLenum type, const GLvoid *pixels)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (QGLLogGLCalls) {
+		const unsigned int *texture = pixels;
+		int i;
+
+		fprintf(qgllog, "\tunsigned int Texture_%d_%d[%d * %d] = {\n",
+			bound_texture, level, width, height);
+		for (i = 0; i < (width * height); i++) {
+			if (!(i % 4))
+				fprintf(qgllog, "\t\t0x%08X,", texture[i]);
+			else if ((i % 4) == 3)
+				fprintf(qgllog, " 0x%08X,\n", texture[i]);
+			else
+				fprintf(qgllog, " 0x%08X,", texture[i]);
+		}
+
+		if ((i % 4))
+			fprintf(qgllog, "\n");
+		fprintf(qgllog, "\t};\n");
+
+		fprintf(QGLDebugFile(),
+			"\tglTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s, Texture_%d_%d); //\n",
+			QGLEnumString(target), level, QGLEnumString(internalformat),
+			width, height, border, QGLEnumString(format), QGLEnumString(type),
+			bound_texture, level);
+	}
+#endif
+    glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glTexImage2D");
+#endif
+}
+
+#undef glDeleteTextures
+// void glDeleteTextures (GLsizei n, const GLuint *textures);
+void qglDeleteTextures(GLsizei n, const GLuint *textures)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+    if (QGLLogGLCalls)
+	    fprintf(QGLDebugFile(), "\ttmp = %d;\n", textures[0]);
+        fprintf(QGLDebugFile(), "\tglDeleteTextures(%d, &tmp);\n", n);
+#endif
+    glDeleteTextures(n, textures);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glDeleteTextures");
+#endif
+}
+
+#undef glBindTexture
+// void glBindTexture (GLenum target, GLuint texture);
+void qglBindTexture(GLenum target, GLuint texture)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	bound_texture = texture;
+	if (QGLLogGLCalls)
+		fprintf(QGLDebugFile(), "\tglBindTexture(%s, %u);\n", QGLEnumString(target), texture);
+#endif
+    glBindTexture(target, texture);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glBindTexture");
+#endif
+}
+
+#undef glActiveTexture
+// void glActiveTexture(GLenum texture);
+void qglActiveTexture(GLenum texture)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+	if (texture == GL_TEXTURE1)
+		current_texture = 1;
+	else
+		current_texture = 0;
+	if (QGLLogGLCalls)
+		fprintf(QGLDebugFile(), "\tglActiveTexture(%s);\n", QGLEnumString(texture));
+#endif
+    glActiveTexture(texture);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glActiveTexture");
+#endif
+}
+
+#undef glDisableClientState
+// void glDisableClientState (GLenum array);
+void qglDisableClientState(GLenum array)
+{
+#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+    if (QGLLogGLCalls)
+	    fprintf(QGLDebugFile(), "\tglDisableClientState(%s);\n", QGLEnumString(array));
+#endif
+    glDisableClientState(array);
+#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
+    if (!QGLBeginStarted)
+        QGLCheckError("glDisableClientState");
+#endif
+}

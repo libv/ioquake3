@@ -109,6 +109,8 @@ static void DrawTris (shaderCommands_t *input) {
 	qglDisableClientState (GL_COLOR_ARRAY);
 	qglDisableClientState (GL_TEXTURE_COORD_ARRAY);
 
+	qglNumVertices(input->numVertexes);
+
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);	// padded for SIMD
 
 	if (qglLockArraysEXT) {
@@ -1030,6 +1032,8 @@ void RB_StageIteratorGeneric( void )
 		qglPolygonOffset( r_offsetFactor->value, r_offsetUnits->value );
 	}
 
+	qglNumVertices(input->numVertexes);
+
 	//
 	// if there is only a single pass then we can enable color
 	// and texture arrays before we compile, otherwise we need
@@ -1149,6 +1153,7 @@ void RB_StageIteratorVertexLitTexture( void )
 	qglEnableClientState( GL_COLOR_ARRAY);
 	qglEnableClientState( GL_TEXTURE_COORD_ARRAY);
 
+	qglNumVertices(input->numVertexes);
 	qglColorPointer( 4, GL_UNSIGNED_BYTE, 0, tess.svars.colors );
 	qglTexCoordPointer( 2, GL_FLOAT, 16, tess.texCoords[0][0] );
 	qglVertexPointer (3, GL_FLOAT, 16, input->xyz);
@@ -1215,6 +1220,7 @@ void RB_StageIteratorLightmappedMultitexture( void ) {
 	// set color, pointers, and lock
 	//
 	GL_State( GLS_DEFAULT );
+	qglNumVertices(input->numVertexes);
 	qglVertexPointer( 3, GL_FLOAT, 16, input->xyz );
 
 #ifdef REPLACE_MODE
