@@ -153,7 +153,7 @@ static void make_window(EGLDisplay eglDisplay, int width, int height,
 
 static qboolean GLimp_HaveExtension(const char *ext)
 {
-	const char *ptr = Q_stristr( glConfig.extensions_string, ext );
+	const char *ptr = Q_stristr(glConfig.extensions_string, ext);
 	if (ptr == NULL)
 		return qfalse;
 	ptr += strlen(ext);
@@ -171,176 +171,81 @@ static void qglMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
 GLimp_InitExtensions
 ===============
 */
-static void GLimp_InitExtensions( void )
+static void GLimp_InitExtensions(void)
 {
-	if ( !r_allowExtensions->integer )
+	if (!r_allowExtensions->integer)
 	{
-		ri.Printf( PRINT_ALL, "* IGNORING OPENGL EXTENSIONS *\n" );
+		ri.Printf(PRINT_ALL, "* IGNORING OPENGL EXTENSIONS *\n");
 		return;
 	}
 
-	ri.Printf( PRINT_ALL, "Initializing OpenGL extensions\n" );
+	ri.Printf(PRINT_ALL, "Initializing OpenGL extensions\n");
 
 	glConfig.textureCompression = TC_NONE;
 
 	// GL_EXT_texture_compression_s3tc
-	if ( GLimp_HaveExtension( "GL_ARB_texture_compression" ) &&
-	     GLimp_HaveExtension( "GL_EXT_texture_compression_s3tc" ) )
-	{
-		if ( r_ext_compressed_textures->value )
-		{
+	if (GLimp_HaveExtension("GL_ARB_texture_compression") &&
+	    GLimp_HaveExtension("GL_EXT_texture_compression_s3tc")) {
+		if (r_ext_compressed_textures->value) {
 			glConfig.textureCompression = TC_S3TC_ARB;
-			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_compression_s3tc\n" );
-		}
-		else
-		{
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_texture_compression_s3tc\n" );
-		}
-	}
-	else
-	{
-		ri.Printf( PRINT_ALL, "...GL_EXT_texture_compression_s3tc not found\n" );
-	}
+			ri.Printf(PRINT_ALL,
+				  "...using GL_EXT_texture_compression_s3tc\n");
+		} else
+			ri.Printf(PRINT_ALL, "...ignoring "
+				  "GL_EXT_texture_compression_s3tc\n");
+	} else
+		ri.Printf(PRINT_ALL,
+			  "...GL_EXT_texture_compression_s3tc not found\n");
 
-	// GL_S3_s3tc ... legacy extension before GL_EXT_texture_compression_s3tc.
-	if (glConfig.textureCompression == TC_NONE)
-	{
-		if ( GLimp_HaveExtension( "GL_S3_s3tc" ) )
-		{
-			if ( r_ext_compressed_textures->value )
-			{
+	if (glConfig.textureCompression == TC_NONE) {
+		if (GLimp_HaveExtension("GL_S3_s3tc")) {
+			if (r_ext_compressed_textures->value) {
 				glConfig.textureCompression = TC_S3TC;
-				ri.Printf( PRINT_ALL, "...using GL_S3_s3tc\n" );
-			}
-			else
-			{
-				ri.Printf( PRINT_ALL, "...ignoring GL_S3_s3tc\n" );
-			}
-		}
-		else
-		{
-			ri.Printf( PRINT_ALL, "...GL_S3_s3tc not found\n" );
-		}
+				ri.Printf(PRINT_ALL, "...using GL_S3_s3tc\n");
+			} else
+				ri.Printf(PRINT_ALL,
+					  "...ignoring GL_S3_s3tc\n");
+		} else
+			ri.Printf(PRINT_ALL, "...GL_S3_s3tc not found\n");
 	}
 
 
 	// GL_EXT_texture_env_add
 	glConfig.textureEnvAddAvailable = qtrue; //qfalse;
-#if 0
-	if ( GLimp_HaveExtension( "EXT_texture_env_add" ) )
-	{
-		if ( r_ext_texture_env_add->integer )
-		{
-			glConfig.textureEnvAddAvailable = qtrue;
-			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_env_add\n" );
-		}
-		else
-		{
-			glConfig.textureEnvAddAvailable = qfalse;
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_texture_env_add\n" );
-		}
-	}
-	else
-	{
-		ri.Printf( PRINT_ALL, "...GL_EXT_texture_env_add not found\n" );
-	}
-#endif
 
-	// GL_ARB_multitexture
-	/*
-	qglMultiTexCoord2fARB = NULL;
-	qglActiveTextureARB = NULL;
-	qglClientActiveTextureARB = NULL;
-	*/
-	//if ( GLimp_HaveExtension( "GL_ARB_multitexture" ) )
-	{
-		if ( r_ext_multitexture->value )
-		{
-			qglMultiTexCoord2fARB = qglMultiTexCoord2f;
-			qglActiveTextureARB = qglActiveTexture;
-			qglClientActiveTextureARB = qglClientActiveTexture;
+	if (r_ext_multitexture->value) {
+		qglMultiTexCoord2fARB = qglMultiTexCoord2f;
+		qglActiveTextureARB = qglActiveTexture;
+		qglClientActiveTextureARB = qglClientActiveTexture;
 
-			if ( qglActiveTextureARB )
-			{
-				GLint glint = 0;
-				qglGetIntegerv( GL_MAX_TEXTURE_UNITS, &glint );
-				glConfig.numTextureUnits = (int) glint;
-				if ( glConfig.numTextureUnits > 1 )
-				{
-					ri.Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
-				}
-				else
-				{
-					qglMultiTexCoord2fARB = NULL;
-					qglActiveTextureARB = NULL;
-					qglClientActiveTextureARB = NULL;
-					ri.Printf( PRINT_ALL, "...not using GL_ARB_multitexture, < 2 texture units\n" );
-				}
+		if (qglActiveTextureARB) {
+			GLint glint = 0;
+			qglGetIntegerv(GL_MAX_TEXTURE_UNITS, &glint);
+			glConfig.numTextureUnits = (int) glint;
+			if (glConfig.numTextureUnits > 1)
+				ri.Printf(PRINT_ALL,
+					  "...using GL_ARB_multitexture\n");
+			else {
+
+				qglMultiTexCoord2fARB = NULL;
+				qglActiveTextureARB = NULL;
+				qglClientActiveTextureARB = NULL;
+				ri.Printf(PRINT_ALL,
+					  "...not using GL_ARB_multitexture,"
+					  " < 2 texture units\n");
 			}
-		}
-		else
-		{
-			ri.Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
-		}
+		} else
+			ri.Printf(PRINT_ALL,
+				  "...ignoring GL_ARB_multitexture\n");
 	}
-#if 0
-	else
-	{
-		ri.Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
-	}
-#endif
 
-#if 0
-	// GL_EXT_compiled_vertex_array
-	if ( GLimp_HaveExtension( "GL_EXT_compiled_vertex_array" ) )
-	{
-		if ( r_ext_compiled_vertex_array->value )
-		{
-			ri.Printf( PRINT_ALL, "...using GL_EXT_compiled_vertex_array\n" );
-			qglLockArraysEXT = ( void ( APIENTRY * )( GLint, GLint ) ) SDL_GL_GetProcAddress( "glLockArraysEXT" );
-			qglUnlockArraysEXT = ( void ( APIENTRY * )( void ) ) SDL_GL_GetProcAddress( "glUnlockArraysEXT" );
-			if (!qglLockArraysEXT || !qglUnlockArraysEXT)
-			{
-				ri.Error (ERR_FATAL, "bad getprocaddress");
-			}
-		}
-		else
-		{
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_compiled_vertex_array\n" );
-		}
-	}
-	else
-#endif
-	{
-		ri.Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
-	}
+	ri.Printf(PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n");
 
 	textureFilterAnisotropic = qfalse;
-#if 0
-	if ( GLimp_HaveExtension( "GL_EXT_texture_filter_anisotropic" ) )
-	{
-		if ( r_ext_texture_filter_anisotropic->integer ) {
-			qglGetIntegerv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, (GLint *)&maxAnisotropy );
-			if ( maxAnisotropy <= 0 ) {
-				ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not properly supported!\n" );
-				maxAnisotropy = 0;
-			}
-			else
-			{
-				ri.Printf( PRINT_ALL, "...using GL_EXT_texture_filter_anisotropic (max: %i)\n", maxAnisotropy );
-				textureFilterAnisotropic = qtrue;
-			}
-		}
-		else
-		{
-			ri.Printf( PRINT_ALL, "...ignoring GL_EXT_texture_filter_anisotropic\n" );
-		}
-	}
-	else
-#endif
-	{
-		ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n" );
-	}
+
+
+	ri.Printf(PRINT_ALL,
+		  "...GL_EXT_texture_filter_anisotropic not found\n");
 }
 
 void GLimp_Init(void)
@@ -394,7 +299,7 @@ void GLimp_Init(void)
 
 	GLimp_InitExtensions();
 
-	IN_Init( );
+	IN_Init();
 
 	ri.Printf(PRINT_ALL, "------------------\n");
 }
@@ -407,7 +312,8 @@ void GLimp_LogComment(char *comment)
 void GLimp_EndFrame(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-	fprintf(QGLDebugFile(), "\t//eglSwapBuffers(eglDisplay, eglSurface);\n");
+	fprintf(QGLDebugFile(),
+		"\t//eglSwapBuffers(eglDisplay, eglSurface);\n");
 #endif
 	eglSwapBuffers(eglDisplay, eglSurface);
 }
@@ -422,7 +328,8 @@ void GLimp_Shutdown(void)
 
 	eglDestroyContext(eglDisplay, eglContext);
 	eglDestroySurface(eglDisplay, eglSurface);
-	eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE,
+		       EGL_NO_CONTEXT);
 	eglTerminate(eglDisplay);
 }
 
@@ -433,7 +340,6 @@ void qglCallList(GLuint list)
 #endif
 }
 
-#if 1
 void GLimp_SetGamma(unsigned char red[256], unsigned char green[256],
 		    unsigned char blue[256])
 {
@@ -460,7 +366,6 @@ void GLimp_RenderThreadWrapper(void *data)
 void GLimp_WakeRenderer(void *data)
 {
 }
-#endif
 
 #ifdef QGL_LOG_GL_CALLS
 #warning enabling GL logging.
@@ -635,7 +540,8 @@ static struct {
 	{GL_SAMPLES, "GL_SAMPLES"},
 	{GL_SAMPLE_COVERAGE_VALUE, "GL_SAMPLE_COVERAGE_VALUE"},
 	{GL_SAMPLE_COVERAGE_INVERT, "GL_SAMPLE_COVERAGE_INVERT"},
-	{GL_NUM_COMPRESSED_TEXTURE_FORMATS, "GL_NUM_COMPRESSED_TEXTURE_FORMATS"},
+	{GL_NUM_COMPRESSED_TEXTURE_FORMATS,
+	 "GL_NUM_COMPRESSED_TEXTURE_FORMATS"},
 	{GL_COMPRESSED_TEXTURE_FORMATS, "GL_COMPRESSED_TEXTURE_FORMATS"},
 	{GL_DONT_CARE, "GL_DONT_CARE"},
 	{GL_FASTEST, "GL_FASTEST"},
@@ -773,7 +679,8 @@ static struct {
 	{GL_VERTEX_ARRAY_BUFFER_BINDING, "GL_VERTEX_ARRAY_BUFFER_BINDING"},
 	{GL_NORMAL_ARRAY_BUFFER_BINDING, "GL_NORMAL_ARRAY_BUFFER_BINDING"},
 	{GL_COLOR_ARRAY_BUFFER_BINDING, "GL_COLOR_ARRAY_BUFFER_BINDING"},
-	{GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING, "GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING"},
+	{GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING,
+	 "GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING"},
 	{GL_STATIC_DRAW, "GL_STATIC_DRAW"},
 	{GL_DYNAMIC_DRAW, "GL_DYNAMIC_DRAW"},
 	{GL_BUFFER_SIZE, "GL_BUFFER_SIZE"},
@@ -803,8 +710,10 @@ static struct {
 	{GL_SRC2_ALPHA, "GL_SRC2_ALPHA"},
 	{GL_DOT3_RGB, "GL_DOT3_RGB"},
 	{GL_DOT3_RGBA, "GL_DOT3_RGBA"},
-	{GL_IMPLEMENTATION_COLOR_READ_TYPE_OES, "GL_IMPLEMENTATION_COLOR_READ_TYPE_OES"},
-	{GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES, "GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES"},
+	{GL_IMPLEMENTATION_COLOR_READ_TYPE_OES,
+	 "GL_IMPLEMENTATION_COLOR_READ_TYPE_OES"},
+	{GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES,
+	 "GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES"},
 	{GL_PALETTE4_RGB8_OES, "GL_PALETTE4_RGB8_OES"},
 	{GL_PALETTE4_RGBA8_OES, "GL_PALETTE4_RGBA8_OES"},
 	{GL_PALETTE4_R5_G6_B5_OES, "GL_PALETTE4_R5_G6_B5_OES"},
@@ -819,11 +728,13 @@ static struct {
 	{GL_POINT_SIZE_ARRAY_TYPE_OES, "GL_POINT_SIZE_ARRAY_TYPE_OES"},
 	{GL_POINT_SIZE_ARRAY_STRIDE_OES, "GL_POINT_SIZE_ARRAY_STRIDE_OES"},
 	{GL_POINT_SIZE_ARRAY_POINTER_OES, "GL_POINT_SIZE_ARRAY_POINTER_OES"},
-	{GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES, "GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES"},
+	{GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES,
+	 "GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES"},
 	{GL_POINT_SPRITE_OES, "GL_POINT_SPRITE_OES"},
 	{GL_COORD_REPLACE_OES, "GL_COORD_REPLACE_OES"},
 	{GL_OES_read_format, "GL_OES_read_format"},
-	{GL_OES_compressed_paletted_texture, "GL_OES_compressed_paletted_texture"},
+	{GL_OES_compressed_paletted_texture,
+	 "GL_OES_compressed_paletted_texture"},
 	{GL_OES_point_size_array, "GL_OES_point_size_array"},
 	{GL_OES_point_sprite, "GL_OES_point_sprite"},
 	{0, NULL},
@@ -892,7 +803,8 @@ FILE *QGLDebugFile(void)
 }
 #endif
 
-void qglDrawBuffer(GLenum mode)
+void
+qglDrawBuffer(GLenum mode)
 {
 #ifdef QGL_LOG_GL_CALLS
 	QGLLogNew();
@@ -902,25 +814,29 @@ void qglDrawBuffer(GLenum mode)
 static int vertices_count;
 int bound_texture;
 
-void qglNumVertices(GLint count)
+void
+qglNumVertices(GLint count)
 {
 	vertices_count = count;
 }
 
-void qglLockArrays(GLint j, GLsizei size)
+void
+qglLockArrays(GLint j, GLsizei size)
 {
 }
 
-void qglUnlockArrays(void)
+void
+qglUnlockArrays(void)
 {
 }
 
 const float *tex_coords_ptr[2];
 int current_texture;
 
-void qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+void
+qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls) {
 		tex_coords_ptr[current_texture] = pointer;
 
@@ -929,17 +845,14 @@ void qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *p
 	}
 #endif
     glTexCoordPointer(size, type, stride, pointer);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexCoordPointer");
-#endif
 }
 
 const unsigned char *color_ptr;
 
-void qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+void
+qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls) {
 		color_ptr = pointer;
 
@@ -948,10 +861,6 @@ void qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *poin
 	}
 #endif
     glColorPointer(size, type, stride, pointer);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glColorPointer");
-#endif
 }
 
 
@@ -959,9 +868,10 @@ const float *vertices_ptr;
 int vertices_stride;
 int vertices_new;
 
-void qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+void
+qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 
 	if (QGLLogGLCalls) {
 		vertices_ptr = pointer;
@@ -973,10 +883,6 @@ void qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *poi
 	}
 #endif
     glVertexPointer(size, type, stride, pointer);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glVertexPointer");
-#endif
 }
 
 #ifdef QGL_LOG_GL_CALLS
@@ -1049,9 +955,10 @@ data_print(int count)
 }
 #endif
 
-void qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
+void
+qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls) {
 		const unsigned short *indices = ptr;
 		int i;
@@ -1082,15 +989,12 @@ void qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 	}
 #endif
     glDrawElements(mode, count, type, ptr);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDrawElements");
-#endif
 }
 
-void qglLoadMatrixf(const GLfloat *m)
+void
+qglLoadMatrixf(const GLfloat *m)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls) {
 		fprintf(qgllog, "\tfloat Matrix_%d[16] = {\n", matrix_count);
 		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
@@ -1103,10 +1007,6 @@ void qglLoadMatrixf(const GLfloat *m)
 	}
 #endif
     glLoadMatrixf(m);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glLoadMatrixf");
-#endif
 }
 
 void
@@ -1114,7 +1014,7 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 	      GLsizei width, GLsizei height, GLint border,
 	      GLenum format, GLenum type, const GLvoid *pixels)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls) {
 		const unsigned int *texture = pixels;
 		int i;
@@ -1147,56 +1047,44 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 	}
 #endif
     glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexImage2D");
-#endif
 }
 
-void qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
+void
+qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n", QGLEnumString(target), level, xoffset, yoffset, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexSubImage2D");
-#endif
 }
 
-void qglDeleteTextures(GLsizei n, const GLuint *textures)
+void
+qglDeleteTextures(GLsizei n, const GLuint *textures)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\ttmp = %d;\n", textures[0]);
         fprintf(QGLDebugFile(), "\tglDeleteTextures(%d, &tmp);\n", n);
 #endif
     glDeleteTextures(n, textures);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDeleteTextures");
-#endif
 }
 
-void qglBindTexture(GLenum target, GLuint texture)
+void
+qglBindTexture(GLenum target, GLuint texture)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	bound_texture = texture;
 	if (QGLLogGLCalls)
 		fprintf(QGLDebugFile(), "\tglBindTexture(%s, %u);\n", QGLEnumString(target), texture);
 #endif
     glBindTexture(target, texture);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glBindTexture");
-#endif
 }
 
-void qglActiveTexture(GLenum texture)
+void
+qglActiveTexture(GLenum texture)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (texture == GL_TEXTURE1)
 		current_texture = 1;
 	else
@@ -1205,619 +1093,475 @@ void qglActiveTexture(GLenum texture)
 		fprintf(QGLDebugFile(), "\tglActiveTexture(%s);\n", QGLEnumString(texture));
 #endif
     glActiveTexture(texture);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glActiveTexture");
-#endif
 }
 
-void qglDisableClientState(GLenum array)
+void
+qglDisableClientState(GLenum array)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglDisableClientState(%s);\n", QGLEnumString(array));
 #endif
     glDisableClientState(array);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDisableClientState");
-#endif
 }
 
-void qglAlphaFunc(GLenum func, GLclampf ref)
+void
+qglAlphaFunc(GLenum func, GLclampf ref)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglAlphaFunc(%s, %f);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFunc(func, ref);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glAlphaFunc");
-#endif
 }
 
-void qglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+void
+qglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 #endif
     glClearColor(red, green, blue, alpha);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClearColor");
-#endif
 }
 
-void qglClearDepthf(GLclampf depth)
+void
+qglClearDepthf(GLclampf depth)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearDepthf(%f);\n", depth);
 #endif
     glClearDepthf(depth);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClearDepthf");
-#endif
 }
 
-void qglClipPlanef(GLenum plane, const GLfloat *equation)
+void
+qglClipPlanef(GLenum plane, const GLfloat *equation)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglClipPlanef(%s, %p);\n", QGLEnumString(plane), equation);
 #endif
     glClipPlanef(plane, equation);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClipPlanef");
-#endif
 }
 
-void qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
+void
+qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglColor4f(%f, %f, %f, %f);\n",
 		    red, green, blue, alpha);
 #endif
     glColor4f(red, green, blue, alpha);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glColor4f");
-#endif
 }
 
-void qglDepthRangef(GLclampf zNear, GLclampf zFar)
+void
+qglDepthRangef(GLclampf zNear, GLclampf zFar)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglDepthRangef(%f, %f);\n", zNear, zFar);
 #endif
     glDepthRangef(zNear, zFar);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDepthRangef");
-#endif
 }
 
-void qglLineWidth(GLfloat width)
+void
+qglLineWidth(GLfloat width)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglLineWidth(%f);\n", width);
 #endif
     glLineWidth(width);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glLineWidth");
-#endif
 }
 
-void qglLoadMatrixf(const GLfloat *m);
+void
+qglLoadMatrixf(const GLfloat *m);
 
-void qglMaterialf(GLenum face, GLenum pname, GLfloat param)
+void
+qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglMaterialf(%s, %s, %f);\n", QGLEnumString(face), QGLEnumString(pname), param);
 #endif
     glMaterialf(face, pname, param);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glMaterialf");
-#endif
 }
 
-void qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
+void
+qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n", QGLEnumString(target), s, t, r, q);
 #endif
     glMultiTexCoord4f(target, s, t, r, q);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glMultiTexCoord4f");
-#endif
 }
 
-void qglOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
+void
+qglOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglOrthof(%f, %f, %f, %f, %f, %f);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glOrthof(left, right, bottom, top, zNear, zFar);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glOrthof");
-#endif
 }
 
-void qglPolygonOffset(GLfloat factor, GLfloat units)
+void
+qglPolygonOffset(GLfloat factor, GLfloat units)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPolygonOffset(%f, %f);\n", factor, units);
 #endif
     glPolygonOffset(factor, units);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glPolygonOffset");
-#endif
 }
 
-void qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
+void
+qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexEnvf(%s, %s, %f);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvf(target, pname, param);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexEnvf");
-#endif
 }
 
-void qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
+void
+qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTranslatef(%f, %f, %f);\n", x, y, z);
 #endif
     glTranslatef(x, y, z);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTranslatef");
-#endif
 }
 
-void qglActiveTexture(GLenum texture);
+void
+qglActiveTexture(GLenum texture);
 
-void qglAlphaFuncx(GLenum func, GLclampx ref)
+void
+qglAlphaFuncx(GLenum func, GLclampx ref)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglAlphaFuncx(%s, %d);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFuncx(func, ref);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glAlphaFuncx");
-#endif
 }
 
-void qglBindTexture(GLenum target, GLuint texture);
+void
+qglBindTexture(GLenum target, GLuint texture);
 
-void qglBlendFunc(GLenum sfactor, GLenum dfactor)
+void
+qglBlendFunc(GLenum sfactor, GLenum dfactor)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglBlendFunc(%s, %s);\n", QGLEnumString(sfactor), QGLEnumString(dfactor));
 #endif
     glBlendFunc(sfactor, dfactor);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glBlendFunc");
-#endif
 }
 
-void qglClear(GLbitfield mask)
+void
+qglClear(GLbitfield mask)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglClear(%s);\n", QGLEnumString(mask));
 #endif
     glClear(mask);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClear");
-#endif
 }
 
-void qglClearStencil(GLint s)
+void
+qglClearStencil(GLint s)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearStencil(%d);\n", s);
 #endif
     glClearStencil(s);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClearStencil");
-#endif
 }
 
-void qglClientActiveTexture(GLenum texture)
+void
+qglClientActiveTexture(GLenum texture)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglClientActiveTexture(%s);\n", QGLEnumString(texture));
 #endif
     glClientActiveTexture(texture);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glClientActiveTexture");
-#endif
 }
 
-void qglColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
+void
+qglColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglColorMask(%u, %u, %u, %u);\n", red, green, blue, alpha);
 #endif
     glColorMask(red, green, blue, alpha);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glColorMask");
-#endif
 }
 
-void qglCullFace(GLenum mode)
+void
+qglCullFace(GLenum mode)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglCullFace(%s);\n", QGLEnumString(mode));
 #endif
     glCullFace(mode);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glCullFace");
-#endif
 }
 
-void qglDepthFunc(GLenum func)
+void
+qglDepthFunc(GLenum func)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglDepthFunc(%s);\n", QGLEnumString(func));
 #endif
     glDepthFunc(func);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDepthFunc");
-#endif
 }
 
-void qglDepthMask(GLboolean flag)
+void
+qglDepthMask(GLboolean flag)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglDepthMask(%u);\n", flag);
 #endif
     glDepthMask(flag);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDepthMask");
-#endif
 }
 
-void qglDisable(GLenum cap)
+void
+qglDisable(GLenum cap)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglDisable(%s);\n", QGLEnumString(cap));
 #endif
     glDisable(cap);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDisable");
-#endif
 }
 
-void qglDrawArrays(GLenum mode, GLint first, GLsizei count)
+void
+qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglDrawArrays(%s, %d, %d);\n", QGLEnumString(mode), first, count);
 #endif
     glDrawArrays(mode, first, count);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glDrawArrays");
-#endif
 }
 
-void qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
+void
+qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices);
 
-void qglEnable(GLenum cap)
+void
+qglEnable(GLenum cap)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglEnable(%s);\n", QGLEnumString(cap));
 #endif
     glEnable(cap);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glEnable");
-#endif
 }
 
-void qglEnableClientState(GLenum array)
+void
+qglEnableClientState(GLenum array)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglEnableClientState(%s);\n", QGLEnumString(array));
 #endif
     glEnableClientState(array);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glEnableClientState");
-#endif
 }
 
-void qglFinish(void)
+void
+qglFinish(void)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglFinish();\n");
 #endif
     glFinish();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glFinish");
-#endif
 }
 
-void qglFlush(void)
+void
+qglFlush(void)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglFlush();\n");
 #endif
     glFlush();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glFlush");
-#endif
 }
 
-void qglGetBooleanv(GLenum pname, GLboolean *params)
+void
+qglGetBooleanv(GLenum pname, GLboolean *params)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetBooleanv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetBooleanv(pname, params);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glGetBooleanv");
-#endif
 }
 
 GLenum qglGetError(void)
 {
-    GLenum returnValue;
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetError();\n");
 #endif
-    returnValue = glGetError();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glGetError");
-#endif
-    return returnValue;
+    return glGetError();
 }
 
-void qglGetIntegerv(GLenum pname, GLint *params)
+void
+qglGetIntegerv(GLenum pname, GLint *params)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetIntegerv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetIntegerv(pname, params);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glGetIntegerv");
-#endif
 }
 
 const GLubyte * qglGetString(GLenum name)
 {
-    const GLubyte * returnValue;
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglGetString(%s);\n", QGLEnumString(name));
 #endif
-    returnValue = glGetString(name);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glGetString");
-#endif
-    return returnValue;
+    return glGetString(name);
 }
 
-void qglLoadIdentity(void)
+void
+qglLoadIdentity(void)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglLoadIdentity();\n");
 #endif
     glLoadIdentity();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glLoadIdentity");
-#endif
 }
 
-void qglMatrixMode(GLenum mode)
+void
+qglMatrixMode(GLenum mode)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglMatrixMode(%s);\n", QGLEnumString(mode));
 #endif
     glMatrixMode(mode);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glMatrixMode");
-#endif
 }
 
-void qglPopMatrix(void)
+void
+qglPopMatrix(void)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPopMatrix();\n");
 #endif
     glPopMatrix();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glPopMatrix");
-#endif
 }
 
-void qglPushMatrix(void)
+void
+qglPushMatrix(void)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPushMatrix();\n");
 #endif
     glPushMatrix();
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glPushMatrix");
-#endif
 }
 
-void qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels)
+void
+qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glReadPixels(x, y, width, height, format, type, pixels);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glReadPixels");
-#endif
 }
 
-void qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
+void
+qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglScissor(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glScissor(x, y, width, height);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glScissor");
-#endif
 }
 
-void qglShadeModel(GLenum mode)
+void
+qglShadeModel(GLenum mode)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
 	if (QGLLogGLCalls)
 		fprintf(QGLDebugFile(), "\tglShadeModel(%s);\n", QGLEnumString(mode));
 #endif
 	glShadeModel(mode);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-	if (!QGLBeginStarted)
-		QGLCheckError("glShadeModel");
-#endif
 }
 
-void qglStencilFunc(GLenum func, GLint ref, GLuint mask)
+void
+qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglStencilFunc(%s, %d, %s);\n", QGLEnumString(func), ref, QGLEnumString(mask));
 #endif
     glStencilFunc(func, ref, mask);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glStencilFunc");
-#endif
 }
 
-void qglStencilMask(GLuint mask)
+void
+qglStencilMask(GLuint mask)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglStencilMask(%s);\n", QGLEnumString(mask));
 #endif
     glStencilMask(mask);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glStencilMask");
-#endif
 }
 
-void qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+void
+qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
 	    fprintf(QGLDebugFile(), "\tglStencilOp(%s, %s, %s);\n", QGLEnumString(fail), QGLEnumString(zfail), QGLEnumString(zpass));
 #endif
     glStencilOp(fail, zfail, zpass);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glStencilOp");
-#endif
 }
 
-void qglTexEnvi(GLenum target, GLenum pname, GLint param)
+void
+qglTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexEnvi(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvi(target, pname, param);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexEnvi");
-#endif
 }
 
-void qglTexParameteri(GLenum target, GLenum pname, GLint param)
+void
+qglTexParameteri(GLenum target, GLenum pname, GLint param)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexParameteri(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexParameteri(target, pname, param);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glTexParameteri");
-#endif
 }
 
-void qglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+void
+qglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-#if !defined(NDEBUG) && defined(QGL_LOG_GL_CALLS)
+#ifdef QGL_LOG_GL_CALLS
     if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglViewport(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glViewport(x, y, width, height);
-#if !defined(NDEBUG) && defined(QGL_CHECK_GL_ERRORS)
-    if (!QGLBeginStarted)
-        QGLCheckError("glViewport");
-#endif
 }
