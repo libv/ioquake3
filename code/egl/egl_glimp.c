@@ -406,13 +406,17 @@ void GLimp_LogComment(char *comment)
 
 void GLimp_EndFrame(void)
 {
+#ifdef QGL_LOG_GL_CALLS
 	fprintf(QGLDebugFile(), "\t//eglSwapBuffers(eglDisplay, eglSurface);\n");
+#endif
 	eglSwapBuffers(eglDisplay, eglSurface);
 }
 
 void GLimp_Shutdown(void)
 {
+#ifdef QGL_LOG_GL_CALLS
 	fprintf(QGLDebugFile(), "\t/* %s */\n", __func__);
+#endif
 
 	IN_Shutdown();
 
@@ -424,7 +428,9 @@ void GLimp_Shutdown(void)
 
 void qglCallList(GLuint list)
 {
+#ifdef QGL_LOG_GL_CALLS
 	fprintf(QGLDebugFile(), "\t%s(%d);\n", __func__, list);
+#endif
 }
 
 #if 1
@@ -884,10 +890,13 @@ FILE *QGLDebugFile(void)
 
 	return qgllog;
 }
+#endif
 
 void qglDrawBuffer(GLenum mode)
 {
+#ifdef QGL_LOG_GL_CALLS
 	QGLLogNew();
+#endif
 }
 
 static int vertices_count;
@@ -970,6 +979,7 @@ void qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *poi
 #endif
 }
 
+#ifdef QGL_LOG_GL_CALLS
 void
 data_print(int count)
 {
@@ -1037,6 +1047,7 @@ data_print(int count)
 
 
 }
+#endif
 
 void qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 {
