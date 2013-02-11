@@ -1999,9 +1999,6 @@ ifeq ($(USE_SVN),1)
   $(B)/ded/common.o : .svn/entries
 endif
 
-$(EGLDIR)/qgl.h: $(EGLDIR)/GenerateQGL.pl
-	$(DO_PERL)
-
 $(B)/client/%.o: $(EGLDIR)/%.c
 	$(DO_CC)
 
