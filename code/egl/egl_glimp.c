@@ -312,7 +312,6 @@ void GLimp_LogComment(char *comment)
 }
 
 #ifdef QGL_LOG_GL_CALLS
-unsigned int QGLLogGLCalls = 1;
 
 static FILE *qgllog;
 static FILE *qgldata;
@@ -843,12 +842,10 @@ void
 qglTexCoordPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls) {
-		tex_coords_ptr[current_texture] = pointer;
+	tex_coords_ptr[current_texture] = pointer;
 
-		fprintf(qgllog, "\tglTexCoordPointer(%d, %s, %d, TextureCoordinates_%d_%d);\n",
-			size, QGLEnumString(type), stride, draw_count, current_texture);
-	}
+	fprintf(qgllog, "\tglTexCoordPointer(%d, %s, %d, TextureCoordinates_%d_%d);\n",
+		size, QGLEnumString(type), stride, draw_count, current_texture);
 #endif
     glTexCoordPointer(size, type, stride, pointer);
 }
@@ -859,12 +856,10 @@ void
 qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls) {
-		color_ptr = pointer;
+	color_ptr = pointer;
 
-		fprintf(QGLDebugFile(), "\tglColorPointer(%d, %s, %d, Colors_%d);\n", size,
-			QGLEnumString(type), stride, draw_count);
-	}
+	fprintf(QGLDebugFile(), "\tglColorPointer(%d, %s, %d, Colors_%d);\n", size,
+		QGLEnumString(type), stride, draw_count);
 #endif
     glColorPointer(size, type, stride, pointer);
 }
@@ -879,14 +874,12 @@ qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 {
 #ifdef QGL_LOG_GL_CALLS
 
-	if (QGLLogGLCalls) {
-		vertices_ptr = pointer;
-		vertices_stride = stride;
-		vertices_new = 1;
+	vertices_ptr = pointer;
+	vertices_stride = stride;
+	vertices_new = 1;
 
-		fprintf(QGLDebugFile(), "\tglVertexPointer(%d, %s, %d, Vertices_%d);\n",
-			size, QGLEnumString(type), stride, draw_count);
-	}
+	fprintf(QGLDebugFile(), "\tglVertexPointer(%d, %s, %d, Vertices_%d);\n",
+		size, QGLEnumString(type), stride, draw_count);
 #endif
     glVertexPointer(size, type, stride, pointer);
 }
@@ -965,7 +958,7 @@ void
 qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls) {
+	{
 		const unsigned short *indices = ptr;
 		int i;
 
@@ -1001,16 +994,14 @@ void
 qglLoadMatrixf(const GLfloat *m)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls) {
-		fprintf(qgllog, "\tfloat Matrix_%d[16] = {\n", matrix_count);
-		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
-		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[4], m[5], m[6], m[7]);
-		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[8], m[9], m[10], m[11]);
-		fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[12], m[13], m[14], m[15]);
-		fprintf(qgllog, "\t};\n");
-		fprintf(qgllog, "\tglLoadMatrixf(Matrix_%d);\n", matrix_count);
-		matrix_count++;
-	}
+	fprintf(qgllog, "\tfloat Matrix_%d[16] = {\n", matrix_count);
+	fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
+	fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[4], m[5], m[6], m[7]);
+	fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[8], m[9], m[10], m[11]);
+	fprintf(qgllog, "\t\t%a, %a, %a, %a,\n", m[12], m[13], m[14], m[15]);
+	fprintf(qgllog, "\t};\n");
+	fprintf(qgllog, "\tglLoadMatrixf(Matrix_%d);\n", matrix_count);
+	matrix_count++;
 #endif
     glLoadMatrixf(m);
 }
@@ -1021,7 +1012,7 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 	      GLenum format, GLenum type, const GLvoid *pixels)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls) {
+	{
 		const unsigned int *texture = pixels;
 		int i;
 
@@ -1059,8 +1050,7 @@ void
 qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n", QGLEnumString(target), level, xoffset, yoffset, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
+	fprintf(QGLDebugFile(), "\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n", QGLEnumString(target), level, xoffset, yoffset, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
@@ -1069,8 +1059,7 @@ void
 qglDeleteTextures(GLsizei n, const GLuint *textures)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\ttmp = %d;\n", textures[0]);
+	fprintf(QGLDebugFile(), "\ttmp = %d;\n", textures[0]);
         fprintf(QGLDebugFile(), "\tglDeleteTextures(%d, &tmp);\n", n);
 #endif
     glDeleteTextures(n, textures);
@@ -1081,8 +1070,7 @@ qglBindTexture(GLenum target, GLuint texture)
 {
 #ifdef QGL_LOG_GL_CALLS
 	bound_texture = texture;
-	if (QGLLogGLCalls)
-		fprintf(QGLDebugFile(), "\tglBindTexture(%s, %u);\n", QGLEnumString(target), texture);
+	fprintf(QGLDebugFile(), "\tglBindTexture(%s, %u);\n", QGLEnumString(target), texture);
 #endif
     glBindTexture(target, texture);
 }
@@ -1095,8 +1083,7 @@ qglActiveTexture(GLenum texture)
 		current_texture = 1;
 	else
 		current_texture = 0;
-	if (QGLLogGLCalls)
-		fprintf(QGLDebugFile(), "\tglActiveTexture(%s);\n", QGLEnumString(texture));
+	fprintf(QGLDebugFile(), "\tglActiveTexture(%s);\n", QGLEnumString(texture));
 #endif
     glActiveTexture(texture);
 }
@@ -1105,8 +1092,7 @@ void
 qglDisableClientState(GLenum array)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglDisableClientState(%s);\n", QGLEnumString(array));
+	fprintf(QGLDebugFile(), "\tglDisableClientState(%s);\n", QGLEnumString(array));
 #endif
     glDisableClientState(array);
 }
@@ -1115,8 +1101,7 @@ void
 qglAlphaFunc(GLenum func, GLclampf ref)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglAlphaFunc(%s, %f);\n", QGLEnumString(func), ref);
+	fprintf(QGLDebugFile(), "\tglAlphaFunc(%s, %f);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFunc(func, ref);
 }
@@ -1125,7 +1110,6 @@ void
 qglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 #endif
     glClearColor(red, green, blue, alpha);
@@ -1135,7 +1119,6 @@ void
 qglClearDepthf(GLclampf depth)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearDepthf(%f);\n", depth);
 #endif
     glClearDepthf(depth);
@@ -1145,8 +1128,7 @@ void
 qglClipPlanef(GLenum plane, const GLfloat *equation)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglClipPlanef(%s, %p);\n", QGLEnumString(plane), equation);
+	fprintf(QGLDebugFile(), "\tglClipPlanef(%s, %p);\n", QGLEnumString(plane), equation);
 #endif
     glClipPlanef(plane, equation);
 }
@@ -1155,9 +1137,8 @@ void
 qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglColor4f(%f, %f, %f, %f);\n",
-		    red, green, blue, alpha);
+	fprintf(QGLDebugFile(), "\tglColor4f(%f, %f, %f, %f);\n",
+		red, green, blue, alpha);
 #endif
     glColor4f(red, green, blue, alpha);
 }
@@ -1166,8 +1147,7 @@ void
 qglDepthRangef(GLclampf zNear, GLclampf zFar)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglDepthRangef(%f, %f);\n", zNear, zFar);
+	fprintf(QGLDebugFile(), "\tglDepthRangef(%f, %f);\n", zNear, zFar);
 #endif
     glDepthRangef(zNear, zFar);
 }
@@ -1176,8 +1156,7 @@ void
 qglLineWidth(GLfloat width)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglLineWidth(%f);\n", width);
+	fprintf(QGLDebugFile(), "\tglLineWidth(%f);\n", width);
 #endif
     glLineWidth(width);
 }
@@ -1189,8 +1168,7 @@ void
 qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglMaterialf(%s, %s, %f);\n", QGLEnumString(face), QGLEnumString(pname), param);
+	fprintf(QGLDebugFile(), "\tglMaterialf(%s, %s, %f);\n", QGLEnumString(face), QGLEnumString(pname), param);
 #endif
     glMaterialf(face, pname, param);
 }
@@ -1199,8 +1177,7 @@ void
 qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n", QGLEnumString(target), s, t, r, q);
+	fprintf(QGLDebugFile(), "\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n", QGLEnumString(target), s, t, r, q);
 #endif
     glMultiTexCoord4f(target, s, t, r, q);
 }
@@ -1209,8 +1186,7 @@ void
 qglOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglOrthof(%f, %f, %f, %f, %f, %f);\n", left, right, bottom, top, zNear, zFar);
+	fprintf(QGLDebugFile(), "\tglOrthof(%f, %f, %f, %f, %f, %f);\n", left, right, bottom, top, zNear, zFar);
 #endif
     glOrthof(left, right, bottom, top, zNear, zFar);
 }
@@ -1219,7 +1195,6 @@ void
 qglPolygonOffset(GLfloat factor, GLfloat units)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPolygonOffset(%f, %f);\n", factor, units);
 #endif
     glPolygonOffset(factor, units);
@@ -1229,7 +1204,6 @@ void
 qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexEnvf(%s, %s, %f);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvf(target, pname, param);
@@ -1239,7 +1213,6 @@ void
 qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTranslatef(%f, %f, %f);\n", x, y, z);
 #endif
     glTranslatef(x, y, z);
@@ -1252,8 +1225,7 @@ void
 qglAlphaFuncx(GLenum func, GLclampx ref)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglAlphaFuncx(%s, %d);\n", QGLEnumString(func), ref);
+	fprintf(QGLDebugFile(), "\tglAlphaFuncx(%s, %d);\n", QGLEnumString(func), ref);
 #endif
     glAlphaFuncx(func, ref);
 }
@@ -1265,8 +1237,7 @@ void
 qglBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglBlendFunc(%s, %s);\n", QGLEnumString(sfactor), QGLEnumString(dfactor));
+	fprintf(QGLDebugFile(), "\tglBlendFunc(%s, %s);\n", QGLEnumString(sfactor), QGLEnumString(dfactor));
 #endif
     glBlendFunc(sfactor, dfactor);
 }
@@ -1275,8 +1246,7 @@ void
 qglClear(GLbitfield mask)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglClear(%s);\n", QGLEnumString(mask));
+	fprintf(QGLDebugFile(), "\tglClear(%s);\n", QGLEnumString(mask));
 #endif
     glClear(mask);
 }
@@ -1285,7 +1255,6 @@ void
 qglClearStencil(GLint s)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglClearStencil(%d);\n", s);
 #endif
     glClearStencil(s);
@@ -1295,8 +1264,7 @@ void
 qglClientActiveTexture(GLenum texture)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglClientActiveTexture(%s);\n", QGLEnumString(texture));
+	fprintf(QGLDebugFile(), "\tglClientActiveTexture(%s);\n", QGLEnumString(texture));
 #endif
     glClientActiveTexture(texture);
 }
@@ -1305,7 +1273,6 @@ void
 qglColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglColorMask(%u, %u, %u, %u);\n", red, green, blue, alpha);
 #endif
     glColorMask(red, green, blue, alpha);
@@ -1315,8 +1282,7 @@ void
 qglCullFace(GLenum mode)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglCullFace(%s);\n", QGLEnumString(mode));
+	fprintf(QGLDebugFile(), "\tglCullFace(%s);\n", QGLEnumString(mode));
 #endif
     glCullFace(mode);
 }
@@ -1325,8 +1291,7 @@ void
 qglDepthFunc(GLenum func)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglDepthFunc(%s);\n", QGLEnumString(func));
+	fprintf(QGLDebugFile(), "\tglDepthFunc(%s);\n", QGLEnumString(func));
 #endif
     glDepthFunc(func);
 }
@@ -1335,7 +1300,6 @@ void
 qglDepthMask(GLboolean flag)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglDepthMask(%u);\n", flag);
 #endif
     glDepthMask(flag);
@@ -1345,8 +1309,7 @@ void
 qglDisable(GLenum cap)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglDisable(%s);\n", QGLEnumString(cap));
+	fprintf(QGLDebugFile(), "\tglDisable(%s);\n", QGLEnumString(cap));
 #endif
     glDisable(cap);
 }
@@ -1355,8 +1318,7 @@ void
 qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglDrawArrays(%s, %d, %d);\n", QGLEnumString(mode), first, count);
+	fprintf(QGLDebugFile(), "\tglDrawArrays(%s, %d, %d);\n", QGLEnumString(mode), first, count);
 #endif
     glDrawArrays(mode, first, count);
 }
@@ -1368,8 +1330,7 @@ void
 qglEnable(GLenum cap)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglEnable(%s);\n", QGLEnumString(cap));
+	fprintf(QGLDebugFile(), "\tglEnable(%s);\n", QGLEnumString(cap));
 #endif
     glEnable(cap);
 }
@@ -1378,8 +1339,7 @@ void
 qglEnableClientState(GLenum array)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglEnableClientState(%s);\n", QGLEnumString(array));
+	fprintf(QGLDebugFile(), "\tglEnableClientState(%s);\n", QGLEnumString(array));
 #endif
     glEnableClientState(array);
 }
@@ -1388,7 +1348,6 @@ void
 qglFinish(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglFinish();\n");
 #endif
     glFinish();
@@ -1398,7 +1357,6 @@ void
 qglFlush(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglFlush();\n");
 #endif
     glFlush();
@@ -1408,7 +1366,6 @@ void
 qglGetBooleanv(GLenum pname, GLboolean *params)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetBooleanv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetBooleanv(pname, params);
@@ -1417,7 +1374,6 @@ qglGetBooleanv(GLenum pname, GLboolean *params)
 GLenum qglGetError(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetError();\n");
 #endif
     return glGetError();
@@ -1427,7 +1383,6 @@ void
 qglGetIntegerv(GLenum pname, GLint *params)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglGetIntegerv(%s, %p);\n", QGLEnumString(pname), params);
 #endif
     glGetIntegerv(pname, params);
@@ -1436,8 +1391,7 @@ qglGetIntegerv(GLenum pname, GLint *params)
 const GLubyte * qglGetString(GLenum name)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglGetString(%s);\n", QGLEnumString(name));
+	fprintf(QGLDebugFile(), "\tglGetString(%s);\n", QGLEnumString(name));
 #endif
     return glGetString(name);
 }
@@ -1446,7 +1400,6 @@ void
 qglLoadIdentity(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglLoadIdentity();\n");
 #endif
     glLoadIdentity();
@@ -1456,8 +1409,7 @@ void
 qglMatrixMode(GLenum mode)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglMatrixMode(%s);\n", QGLEnumString(mode));
+	fprintf(QGLDebugFile(), "\tglMatrixMode(%s);\n", QGLEnumString(mode));
 #endif
     glMatrixMode(mode);
 }
@@ -1466,7 +1418,6 @@ void
 qglPopMatrix(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPopMatrix();\n");
 #endif
     glPopMatrix();
@@ -1476,7 +1427,6 @@ void
 qglPushMatrix(void)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglPushMatrix();\n");
 #endif
     glPushMatrix();
@@ -1486,8 +1436,7 @@ void
 qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid *pixels)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
+	fprintf(QGLDebugFile(), "\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width, height, QGLEnumString(format), QGLEnumString(type), pixels);
 #endif
     glReadPixels(x, y, width, height, format, type, pixels);
 }
@@ -1496,7 +1445,6 @@ void
 qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglScissor(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glScissor(x, y, width, height);
@@ -1506,8 +1454,7 @@ void
 qglShadeModel(GLenum mode)
 {
 #ifdef QGL_LOG_GL_CALLS
-	if (QGLLogGLCalls)
-		fprintf(QGLDebugFile(), "\tglShadeModel(%s);\n", QGLEnumString(mode));
+	fprintf(QGLDebugFile(), "\tglShadeModel(%s);\n", QGLEnumString(mode));
 #endif
 	glShadeModel(mode);
 }
@@ -1516,8 +1463,7 @@ void
 qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglStencilFunc(%s, %d, %s);\n", QGLEnumString(func), ref, QGLEnumString(mask));
+	fprintf(QGLDebugFile(), "\tglStencilFunc(%s, %d, %s);\n", QGLEnumString(func), ref, QGLEnumString(mask));
 #endif
     glStencilFunc(func, ref, mask);
 }
@@ -1526,8 +1472,7 @@ void
 qglStencilMask(GLuint mask)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglStencilMask(%s);\n", QGLEnumString(mask));
+	fprintf(QGLDebugFile(), "\tglStencilMask(%s);\n", QGLEnumString(mask));
 #endif
     glStencilMask(mask);
 }
@@ -1536,8 +1481,7 @@ void
 qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
-	    fprintf(QGLDebugFile(), "\tglStencilOp(%s, %s, %s);\n", QGLEnumString(fail), QGLEnumString(zfail), QGLEnumString(zpass));
+	fprintf(QGLDebugFile(), "\tglStencilOp(%s, %s, %s);\n", QGLEnumString(fail), QGLEnumString(zfail), QGLEnumString(zpass));
 #endif
     glStencilOp(fail, zfail, zpass);
 }
@@ -1546,7 +1490,6 @@ void
 qglTexEnvi(GLenum target, GLenum pname, GLint param)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexEnvi(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexEnvi(target, pname, param);
@@ -1556,7 +1499,6 @@ void
 qglTexParameteri(GLenum target, GLenum pname, GLint param)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglTexParameteri(%s, %s, %d);\n", QGLEnumString(target), QGLEnumString(pname), param);
 #endif
     glTexParameteri(target, pname, param);
@@ -1566,7 +1508,6 @@ void
 qglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 #ifdef QGL_LOG_GL_CALLS
-    if (QGLLogGLCalls)
         fprintf(QGLDebugFile(), "\tglViewport(%d, %d, %d, %d);\n", x, y, width, height);
 #endif
     glViewport(x, y, width, height);
