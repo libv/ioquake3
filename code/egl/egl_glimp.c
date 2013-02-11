@@ -464,388 +464,7 @@ void GLimp_WakeRenderer(void *data)
 }
 
 #ifdef QGL_LOG_GL_CALLS
-static struct {
-	GLenum value;
-	char *name;
-} GLEnumStrings[] = {
-	{GL_DEPTH_BUFFER_BIT, "GL_DEPTH_BUFFER_BIT"},
-	{GL_STENCIL_BUFFER_BIT, "GL_STENCIL_BUFFER_BIT"},
-	{GL_COLOR_BUFFER_BIT, "GL_COLOR_BUFFER_BIT"},
-	{GL_FALSE, "GL_FALSE"},
-	{GL_TRUE, "GL_TRUE"},
-	{GL_POINTS, "GL_POINTS"},
-	{GL_LINES, "GL_LINES"},
-	{GL_LINE_LOOP, "GL_LINE_LOOP"},
-	{GL_LINE_STRIP, "GL_LINE_STRIP"},
-	{GL_TRIANGLES, "GL_TRIANGLES"},
-	{GL_TRIANGLE_STRIP, "GL_TRIANGLE_STRIP"},
-	{GL_TRIANGLE_FAN, "GL_TRIANGLE_FAN"},
-	{GL_NEVER, "GL_NEVER"},
-	{GL_LESS, "GL_LESS"},
-	{GL_EQUAL, "GL_EQUAL"},
-	{GL_LEQUAL, "GL_LEQUAL"},
-	{GL_GREATER, "GL_GREATER"},
-	{GL_NOTEQUAL, "GL_NOTEQUAL"},
-	{GL_GEQUAL, "GL_GEQUAL"},
-	{GL_ALWAYS, "GL_ALWAYS"},
-	{GL_ZERO, "GL_ZERO"},
-	{GL_ONE, "GL_ONE"},
-	{GL_SRC_COLOR, "GL_SRC_COLOR"},
-	{GL_ONE_MINUS_SRC_COLOR, "GL_ONE_MINUS_SRC_COLOR"},
-	{GL_SRC_ALPHA, "GL_SRC_ALPHA"},
-	{GL_ONE_MINUS_SRC_ALPHA, "GL_ONE_MINUS_SRC_ALPHA"},
-	{GL_DST_ALPHA, "GL_DST_ALPHA"},
-	{GL_ONE_MINUS_DST_ALPHA, "GL_ONE_MINUS_DST_ALPHA"},
-	{GL_DST_COLOR, "GL_DST_COLOR"},
-	{GL_ONE_MINUS_DST_COLOR, "GL_ONE_MINUS_DST_COLOR"},
-	{GL_SRC_ALPHA_SATURATE, "GL_SRC_ALPHA_SATURATE"},
-	{GL_CLIP_PLANE0, "GL_CLIP_PLANE0"},
-	{GL_CLIP_PLANE1, "GL_CLIP_PLANE1"},
-	{GL_CLIP_PLANE2, "GL_CLIP_PLANE2"},
-	{GL_CLIP_PLANE3, "GL_CLIP_PLANE3"},
-	{GL_CLIP_PLANE4, "GL_CLIP_PLANE4"},
-	{GL_CLIP_PLANE5, "GL_CLIP_PLANE5"},
-	{GL_FRONT, "GL_FRONT"},
-	{GL_BACK, "GL_BACK"},
-	{GL_FRONT_AND_BACK, "GL_FRONT_AND_BACK"},
-	{GL_FOG, "GL_FOG"},
-	{GL_LIGHTING, "GL_LIGHTING"},
-	{GL_TEXTURE_2D, "GL_TEXTURE_2D"},
-	{GL_CULL_FACE, "GL_CULL_FACE"},
-	{GL_ALPHA_TEST, "GL_ALPHA_TEST"},
-	{GL_BLEND, "GL_BLEND"},
-	{GL_COLOR_LOGIC_OP, "GL_COLOR_LOGIC_OP"},
-	{GL_DITHER, "GL_DITHER"},
-	{GL_STENCIL_TEST, "GL_STENCIL_TEST"},
-	{GL_DEPTH_TEST, "GL_DEPTH_TEST"},
-	{GL_POINT_SMOOTH, "GL_POINT_SMOOTH"},
-	{GL_LINE_SMOOTH, "GL_LINE_SMOOTH"},
-	{GL_SCISSOR_TEST, "GL_SCISSOR_TEST"},
-	{GL_COLOR_MATERIAL, "GL_COLOR_MATERIAL"},
-	{GL_NORMALIZE, "GL_NORMALIZE"},
-	{GL_RESCALE_NORMAL, "GL_RESCALE_NORMAL"},
-	{GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
-	{GL_VERTEX_ARRAY, "GL_VERTEX_ARRAY"},
-	{GL_NORMAL_ARRAY, "GL_NORMAL_ARRAY"},
-	{GL_COLOR_ARRAY, "GL_COLOR_ARRAY"},
-	{GL_TEXTURE_COORD_ARRAY, "GL_TEXTURE_COORD_ARRAY"},
-	{GL_MULTISAMPLE, "GL_MULTISAMPLE"},
-	{GL_SAMPLE_ALPHA_TO_COVERAGE, "GL_SAMPLE_ALPHA_TO_COVERAGE"},
-	{GL_SAMPLE_ALPHA_TO_ONE, "GL_SAMPLE_ALPHA_TO_ONE"},
-	{GL_SAMPLE_COVERAGE, "GL_SAMPLE_COVERAGE"},
-	{GL_NO_ERROR, "GL_NO_ERROR"},
-	{GL_INVALID_ENUM, "GL_INVALID_ENUM"},
-	{GL_INVALID_VALUE, "GL_INVALID_VALUE"},
-	{GL_INVALID_OPERATION, "GL_INVALID_OPERATION"},
-	{GL_STACK_OVERFLOW, "GL_STACK_OVERFLOW"},
-	{GL_STACK_UNDERFLOW, "GL_STACK_UNDERFLOW"},
-	{GL_OUT_OF_MEMORY, "GL_OUT_OF_MEMORY"},
-	{GL_EXP, "GL_EXP"},
-	{GL_EXP2, "GL_EXP2"},
-	{GL_FOG_DENSITY, "GL_FOG_DENSITY"},
-	{GL_FOG_START, "GL_FOG_START"},
-	{GL_FOG_END, "GL_FOG_END"},
-	{GL_FOG_MODE, "GL_FOG_MODE"},
-	{GL_FOG_COLOR, "GL_FOG_COLOR"},
-	{GL_CW, "GL_CW"},
-	{GL_CCW, "GL_CCW"},
-	{GL_CURRENT_COLOR, "GL_CURRENT_COLOR"},
-	{GL_CURRENT_NORMAL, "GL_CURRENT_NORMAL"},
-	{GL_CURRENT_TEXTURE_COORDS, "GL_CURRENT_TEXTURE_COORDS"},
-	{GL_POINT_SIZE, "GL_POINT_SIZE"},
-	{GL_POINT_SIZE_MIN, "GL_POINT_SIZE_MIN"},
-	{GL_POINT_SIZE_MAX, "GL_POINT_SIZE_MAX"},
-	{GL_POINT_FADE_THRESHOLD_SIZE, "GL_POINT_FADE_THRESHOLD_SIZE"},
-	{GL_POINT_DISTANCE_ATTENUATION, "GL_POINT_DISTANCE_ATTENUATION"},
-	{GL_SMOOTH_POINT_SIZE_RANGE, "GL_SMOOTH_POINT_SIZE_RANGE"},
-	{GL_LINE_WIDTH, "GL_LINE_WIDTH"},
-	{GL_SMOOTH_LINE_WIDTH_RANGE, "GL_SMOOTH_LINE_WIDTH_RANGE"},
-	{GL_ALIASED_POINT_SIZE_RANGE, "GL_ALIASED_POINT_SIZE_RANGE"},
-	{GL_ALIASED_LINE_WIDTH_RANGE, "GL_ALIASED_LINE_WIDTH_RANGE"},
-	{GL_CULL_FACE_MODE, "GL_CULL_FACE_MODE"},
-	{GL_FRONT_FACE, "GL_FRONT_FACE"},
-	{GL_SHADE_MODEL, "GL_SHADE_MODEL"},
-	{GL_DEPTH_RANGE, "GL_DEPTH_RANGE"},
-	{GL_DEPTH_WRITEMASK, "GL_DEPTH_WRITEMASK"},
-	{GL_DEPTH_CLEAR_VALUE, "GL_DEPTH_CLEAR_VALUE"},
-	{GL_DEPTH_FUNC, "GL_DEPTH_FUNC"},
-	{GL_STENCIL_CLEAR_VALUE, "GL_STENCIL_CLEAR_VALUE"},
-	{GL_STENCIL_FUNC, "GL_STENCIL_FUNC"},
-	{GL_STENCIL_VALUE_MASK, "GL_STENCIL_VALUE_MASK"},
-	{GL_STENCIL_FAIL, "GL_STENCIL_FAIL"},
-	{GL_STENCIL_PASS_DEPTH_FAIL, "GL_STENCIL_PASS_DEPTH_FAIL"},
-	{GL_STENCIL_PASS_DEPTH_PASS, "GL_STENCIL_PASS_DEPTH_PASS"},
-	{GL_STENCIL_REF, "GL_STENCIL_REF"},
-	{GL_STENCIL_WRITEMASK, "GL_STENCIL_WRITEMASK"},
-	{GL_MATRIX_MODE, "GL_MATRIX_MODE"},
-	{GL_VIEWPORT, "GL_VIEWPORT"},
-	{GL_MODELVIEW_STACK_DEPTH, "GL_MODELVIEW_STACK_DEPTH"},
-	{GL_PROJECTION_STACK_DEPTH, "GL_PROJECTION_STACK_DEPTH"},
-	{GL_TEXTURE_STACK_DEPTH, "GL_TEXTURE_STACK_DEPTH"},
-	{GL_MODELVIEW_MATRIX, "GL_MODELVIEW_MATRIX"},
-	{GL_PROJECTION_MATRIX, "GL_PROJECTION_MATRIX"},
-	{GL_TEXTURE_MATRIX, "GL_TEXTURE_MATRIX"},
-	{GL_ALPHA_TEST_FUNC, "GL_ALPHA_TEST_FUNC"},
-	{GL_ALPHA_TEST_REF, "GL_ALPHA_TEST_REF"},
-	{GL_BLEND_DST, "GL_BLEND_DST"},
-	{GL_BLEND_SRC, "GL_BLEND_SRC"},
-	{GL_LOGIC_OP_MODE, "GL_LOGIC_OP_MODE"},
-	{GL_SCISSOR_BOX, "GL_SCISSOR_BOX"},
-	{GL_SCISSOR_TEST, "GL_SCISSOR_TEST"},
-	{GL_COLOR_CLEAR_VALUE, "GL_COLOR_CLEAR_VALUE"},
-	{GL_COLOR_WRITEMASK, "GL_COLOR_WRITEMASK"},
-	{GL_UNPACK_ALIGNMENT, "GL_UNPACK_ALIGNMENT"},
-	{GL_PACK_ALIGNMENT, "GL_PACK_ALIGNMENT"},
-	{GL_MAX_LIGHTS, "GL_MAX_LIGHTS"},
-	{GL_MAX_CLIP_PLANES, "GL_MAX_CLIP_PLANES"},
-	{GL_MAX_TEXTURE_SIZE, "GL_MAX_TEXTURE_SIZE"},
-	{GL_MAX_MODELVIEW_STACK_DEPTH, "GL_MAX_MODELVIEW_STACK_DEPTH"},
-	{GL_MAX_PROJECTION_STACK_DEPTH, "GL_MAX_PROJECTION_STACK_DEPTH"},
-	{GL_MAX_TEXTURE_STACK_DEPTH, "GL_MAX_TEXTURE_STACK_DEPTH"},
-	{GL_MAX_VIEWPORT_DIMS, "GL_MAX_VIEWPORT_DIMS"},
-	{GL_MAX_TEXTURE_UNITS, "GL_MAX_TEXTURE_UNITS"},
-	{GL_SUBPIXEL_BITS, "GL_SUBPIXEL_BITS"},
-	{GL_RED_BITS, "GL_RED_BITS"},
-	{GL_GREEN_BITS, "GL_GREEN_BITS"},
-	{GL_BLUE_BITS, "GL_BLUE_BITS"},
-	{GL_ALPHA_BITS, "GL_ALPHA_BITS"},
-	{GL_DEPTH_BITS, "GL_DEPTH_BITS"},
-	{GL_STENCIL_BITS, "GL_STENCIL_BITS"},
-	{GL_POLYGON_OFFSET_UNITS, "GL_POLYGON_OFFSET_UNITS"},
-	{GL_POLYGON_OFFSET_FILL, "GL_POLYGON_OFFSET_FILL"},
-	{GL_POLYGON_OFFSET_FACTOR, "GL_POLYGON_OFFSET_FACTOR"},
-	{GL_TEXTURE_BINDING_2D, "GL_TEXTURE_BINDING_2D"},
-	{GL_VERTEX_ARRAY_SIZE, "GL_VERTEX_ARRAY_SIZE"},
-	{GL_VERTEX_ARRAY_TYPE, "GL_VERTEX_ARRAY_TYPE"},
-	{GL_VERTEX_ARRAY_STRIDE, "GL_VERTEX_ARRAY_STRIDE"},
-	{GL_NORMAL_ARRAY_TYPE, "GL_NORMAL_ARRAY_TYPE"},
-	{GL_NORMAL_ARRAY_STRIDE, "GL_NORMAL_ARRAY_STRIDE"},
-	{GL_COLOR_ARRAY_SIZE, "GL_COLOR_ARRAY_SIZE"},
-	{GL_COLOR_ARRAY_TYPE, "GL_COLOR_ARRAY_TYPE"},
-	{GL_COLOR_ARRAY_STRIDE, "GL_COLOR_ARRAY_STRIDE"},
-	{GL_TEXTURE_COORD_ARRAY_SIZE, "GL_TEXTURE_COORD_ARRAY_SIZE"},
-	{GL_TEXTURE_COORD_ARRAY_TYPE, "GL_TEXTURE_COORD_ARRAY_TYPE"},
-	{GL_TEXTURE_COORD_ARRAY_STRIDE, "GL_TEXTURE_COORD_ARRAY_STRIDE"},
-	{GL_VERTEX_ARRAY_POINTER, "GL_VERTEX_ARRAY_POINTER"},
-	{GL_NORMAL_ARRAY_POINTER, "GL_NORMAL_ARRAY_POINTER"},
-	{GL_COLOR_ARRAY_POINTER, "GL_COLOR_ARRAY_POINTER"},
-	{GL_TEXTURE_COORD_ARRAY_POINTER, "GL_TEXTURE_COORD_ARRAY_POINTER"},
-	{GL_SAMPLE_BUFFERS, "GL_SAMPLE_BUFFERS"},
-	{GL_SAMPLES, "GL_SAMPLES"},
-	{GL_SAMPLE_COVERAGE_VALUE, "GL_SAMPLE_COVERAGE_VALUE"},
-	{GL_SAMPLE_COVERAGE_INVERT, "GL_SAMPLE_COVERAGE_INVERT"},
-	{GL_NUM_COMPRESSED_TEXTURE_FORMATS,
-	 "GL_NUM_COMPRESSED_TEXTURE_FORMATS"},
-	{GL_COMPRESSED_TEXTURE_FORMATS, "GL_COMPRESSED_TEXTURE_FORMATS"},
-	{GL_DONT_CARE, "GL_DONT_CARE"},
-	{GL_FASTEST, "GL_FASTEST"},
-	{GL_NICEST, "GL_NICEST"},
-	{GL_PERSPECTIVE_CORRECTION_HINT, "GL_PERSPECTIVE_CORRECTION_HINT"},
-	{GL_POINT_SMOOTH_HINT, "GL_POINT_SMOOTH_HINT"},
-	{GL_LINE_SMOOTH_HINT, "GL_LINE_SMOOTH_HINT"},
-	{GL_FOG_HINT, "GL_FOG_HINT"},
-	{GL_GENERATE_MIPMAP_HINT, "GL_GENERATE_MIPMAP_HINT"},
-	{GL_LIGHT_MODEL_AMBIENT, "GL_LIGHT_MODEL_AMBIENT"},
-	{GL_LIGHT_MODEL_TWO_SIDE, "GL_LIGHT_MODEL_TWO_SIDE"},
-	{GL_AMBIENT, "GL_AMBIENT"},
-	{GL_DIFFUSE, "GL_DIFFUSE"},
-	{GL_SPECULAR, "GL_SPECULAR"},
-	{GL_POSITION, "GL_POSITION"},
-	{GL_SPOT_DIRECTION, "GL_SPOT_DIRECTION"},
-	{GL_SPOT_EXPONENT, "GL_SPOT_EXPONENT"},
-	{GL_SPOT_CUTOFF, "GL_SPOT_CUTOFF"},
-	{GL_CONSTANT_ATTENUATION, "GL_CONSTANT_ATTENUATION"},
-	{GL_LINEAR_ATTENUATION, "GL_LINEAR_ATTENUATION"},
-	{GL_QUADRATIC_ATTENUATION, "GL_QUADRATIC_ATTENUATION"},
-	{GL_BYTE, "GL_BYTE"},
-	{GL_UNSIGNED_BYTE, "GL_UNSIGNED_BYTE"},
-	{GL_SHORT, "GL_SHORT"},
-	{GL_UNSIGNED_SHORT, "GL_UNSIGNED_SHORT"},
-	{GL_FLOAT, "GL_FLOAT"},
-	{GL_FIXED, "GL_FIXED"},
-	{GL_CLEAR, "GL_CLEAR"},
-	{GL_AND, "GL_AND"},
-	{GL_AND_REVERSE, "GL_AND_REVERSE"},
-	{GL_COPY, "GL_COPY"},
-	{GL_AND_INVERTED, "GL_AND_INVERTED"},
-	{GL_NOOP, "GL_NOOP"},
-	{GL_XOR, "GL_XOR"},
-	{GL_OR, "GL_OR"},
-	{GL_NOR, "GL_NOR"},
-	{GL_EQUIV, "GL_EQUIV"},
-	{GL_INVERT, "GL_INVERT"},
-	{GL_OR_REVERSE, "GL_OR_REVERSE"},
-	{GL_COPY_INVERTED, "GL_COPY_INVERTED"},
-	{GL_OR_INVERTED, "GL_OR_INVERTED"},
-	{GL_NAND, "GL_NAND"},
-	{GL_SET, "GL_SET"},
-	{GL_EMISSION, "GL_EMISSION"},
-	{GL_SHININESS, "GL_SHININESS"},
-	{GL_AMBIENT_AND_DIFFUSE, "GL_AMBIENT_AND_DIFFUSE"},
-	{GL_MODELVIEW, "GL_MODELVIEW"},
-	{GL_PROJECTION, "GL_PROJECTION"},
-	{GL_TEXTURE, "GL_TEXTURE"},
-	{GL_ALPHA, "GL_ALPHA"},
-	{GL_RGB, "GL_RGB"},
-	{GL_RGBA, "GL_RGBA"},
-	{GL_LUMINANCE, "GL_LUMINANCE"},
-	{GL_LUMINANCE_ALPHA, "GL_LUMINANCE_ALPHA"},
-	{GL_UNPACK_ALIGNMENT, "GL_UNPACK_ALIGNMENT"},
-	{GL_PACK_ALIGNMENT, "GL_PACK_ALIGNMENT"},
-	{GL_UNSIGNED_SHORT_4_4_4_4, "GL_UNSIGNED_SHORT_4_4_4_4"},
-	{GL_UNSIGNED_SHORT_5_5_5_1, "GL_UNSIGNED_SHORT_5_5_5_1"},
-	{GL_UNSIGNED_SHORT_5_6_5, "GL_UNSIGNED_SHORT_5_6_5"},
-	{GL_FLAT, "GL_FLAT"},
-	{GL_SMOOTH, "GL_SMOOTH"},
-	{GL_KEEP, "GL_KEEP"},
-	{GL_REPLACE, "GL_REPLACE"},
-	{GL_INCR, "GL_INCR"},
-	{GL_DECR, "GL_DECR"},
-	{GL_VENDOR, "GL_VENDOR"},
-	{GL_RENDERER, "GL_RENDERER"},
-	{GL_VERSION, "GL_VERSION"},
-	{GL_EXTENSIONS, "GL_EXTENSIONS"},
-	{GL_MODULATE, "GL_MODULATE"},
-	{GL_DECAL, "GL_DECAL"},
-	{GL_ADD, "GL_ADD"},
-	{GL_TEXTURE_ENV_MODE, "GL_TEXTURE_ENV_MODE"},
-	{GL_TEXTURE_ENV_COLOR, "GL_TEXTURE_ENV_COLOR"},
-	{GL_TEXTURE_ENV, "GL_TEXTURE_ENV"},
-	{GL_NEAREST, "GL_NEAREST"},
-	{GL_LINEAR, "GL_LINEAR"},
-	{GL_NEAREST_MIPMAP_NEAREST, "GL_NEAREST_MIPMAP_NEAREST"},
-	{GL_LINEAR_MIPMAP_NEAREST, "GL_LINEAR_MIPMAP_NEAREST"},
-	{GL_NEAREST_MIPMAP_LINEAR, "GL_NEAREST_MIPMAP_LINEAR"},
-	{GL_LINEAR_MIPMAP_LINEAR, "GL_LINEAR_MIPMAP_LINEAR"},
-	{GL_TEXTURE_MAG_FILTER, "GL_TEXTURE_MAG_FILTER"},
-	{GL_TEXTURE_MIN_FILTER, "GL_TEXTURE_MIN_FILTER"},
-	{GL_TEXTURE_WRAP_S, "GL_TEXTURE_WRAP_S"},
-	{GL_TEXTURE_WRAP_T, "GL_TEXTURE_WRAP_T"},
-	{GL_GENERATE_MIPMAP, "GL_GENERATE_MIPMAP"},
-	{GL_TEXTURE0, "GL_TEXTURE0"},
-	{GL_TEXTURE1, "GL_TEXTURE1"},
-	{GL_TEXTURE2, "GL_TEXTURE2"},
-	{GL_TEXTURE3, "GL_TEXTURE3"},
-	{GL_TEXTURE4, "GL_TEXTURE4"},
-	{GL_TEXTURE5, "GL_TEXTURE5"},
-	{GL_TEXTURE6, "GL_TEXTURE6"},
-	{GL_TEXTURE7, "GL_TEXTURE7"},
-	{GL_TEXTURE8, "GL_TEXTURE8"},
-	{GL_TEXTURE9, "GL_TEXTURE9"},
-	{GL_TEXTURE10, "GL_TEXTURE10"},
-	{GL_TEXTURE11, "GL_TEXTURE11"},
-	{GL_TEXTURE12, "GL_TEXTURE12"},
-	{GL_TEXTURE13, "GL_TEXTURE13"},
-	{GL_TEXTURE14, "GL_TEXTURE14"},
-	{GL_TEXTURE15, "GL_TEXTURE15"},
-	{GL_TEXTURE16, "GL_TEXTURE16"},
-	{GL_TEXTURE17, "GL_TEXTURE17"},
-	{GL_TEXTURE18, "GL_TEXTURE18"},
-	{GL_TEXTURE19, "GL_TEXTURE19"},
-	{GL_TEXTURE20, "GL_TEXTURE20"},
-	{GL_TEXTURE21, "GL_TEXTURE21"},
-	{GL_TEXTURE22, "GL_TEXTURE22"},
-	{GL_TEXTURE23, "GL_TEXTURE23"},
-	{GL_TEXTURE24, "GL_TEXTURE24"},
-	{GL_TEXTURE25, "GL_TEXTURE25"},
-	{GL_TEXTURE26, "GL_TEXTURE26"},
-	{GL_TEXTURE27, "GL_TEXTURE27"},
-	{GL_TEXTURE28, "GL_TEXTURE28"},
-	{GL_TEXTURE29, "GL_TEXTURE29"},
-	{GL_TEXTURE30, "GL_TEXTURE30"},
-	{GL_TEXTURE31, "GL_TEXTURE31"},
-	{GL_ACTIVE_TEXTURE, "GL_ACTIVE_TEXTURE"},
-	{GL_CLIENT_ACTIVE_TEXTURE, "GL_CLIENT_ACTIVE_TEXTURE"},
-	{GL_REPEAT, "GL_REPEAT"},
-	{GL_CLAMP_TO_EDGE, "GL_CLAMP_TO_EDGE"},
-	{GL_LIGHT0, "GL_LIGHT0"},
-	{GL_LIGHT1, "GL_LIGHT1"},
-	{GL_LIGHT2, "GL_LIGHT2"},
-	{GL_LIGHT3, "GL_LIGHT3"},
-	{GL_LIGHT4, "GL_LIGHT4"},
-	{GL_LIGHT5, "GL_LIGHT5"},
-	{GL_LIGHT6, "GL_LIGHT6"},
-	{GL_LIGHT7, "GL_LIGHT7"},
-	{GL_ARRAY_BUFFER, "GL_ARRAY_BUFFER"},
-	{GL_ELEMENT_ARRAY_BUFFER, "GL_ELEMENT_ARRAY_BUFFER"},
-	{GL_ARRAY_BUFFER_BINDING, "GL_ARRAY_BUFFER_BINDING"},
-	{GL_ELEMENT_ARRAY_BUFFER_BINDING, "GL_ELEMENT_ARRAY_BUFFER_BINDING"},
-	{GL_VERTEX_ARRAY_BUFFER_BINDING, "GL_VERTEX_ARRAY_BUFFER_BINDING"},
-	{GL_NORMAL_ARRAY_BUFFER_BINDING, "GL_NORMAL_ARRAY_BUFFER_BINDING"},
-	{GL_COLOR_ARRAY_BUFFER_BINDING, "GL_COLOR_ARRAY_BUFFER_BINDING"},
-	{GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING,
-	 "GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING"},
-	{GL_STATIC_DRAW, "GL_STATIC_DRAW"},
-	{GL_DYNAMIC_DRAW, "GL_DYNAMIC_DRAW"},
-	{GL_BUFFER_SIZE, "GL_BUFFER_SIZE"},
-	{GL_BUFFER_USAGE, "GL_BUFFER_USAGE"},
-	{GL_SUBTRACT, "GL_SUBTRACT"},
-	{GL_COMBINE, "GL_COMBINE"},
-	{GL_COMBINE_RGB, "GL_COMBINE_RGB"},
-	{GL_COMBINE_ALPHA, "GL_COMBINE_ALPHA"},
-	{GL_RGB_SCALE, "GL_RGB_SCALE"},
-	{GL_ADD_SIGNED, "GL_ADD_SIGNED"},
-	{GL_INTERPOLATE, "GL_INTERPOLATE"},
-	{GL_CONSTANT, "GL_CONSTANT"},
-	{GL_PRIMARY_COLOR, "GL_PRIMARY_COLOR"},
-	{GL_PREVIOUS, "GL_PREVIOUS"},
-	{GL_OPERAND0_RGB, "GL_OPERAND0_RGB"},
-	{GL_OPERAND1_RGB, "GL_OPERAND1_RGB"},
-	{GL_OPERAND2_RGB, "GL_OPERAND2_RGB"},
-	{GL_OPERAND0_ALPHA, "GL_OPERAND0_ALPHA"},
-	{GL_OPERAND1_ALPHA, "GL_OPERAND1_ALPHA"},
-	{GL_OPERAND2_ALPHA, "GL_OPERAND2_ALPHA"},
-	{GL_ALPHA_SCALE, "GL_ALPHA_SCALE"},
-	{GL_SRC0_RGB, "GL_SRC0_RGB"},
-	{GL_SRC1_RGB, "GL_SRC1_RGB"},
-	{GL_SRC2_RGB, "GL_SRC2_RGB"},
-	{GL_SRC0_ALPHA, "GL_SRC0_ALPHA"},
-	{GL_SRC1_ALPHA, "GL_SRC1_ALPHA"},
-	{GL_SRC2_ALPHA, "GL_SRC2_ALPHA"},
-	{GL_DOT3_RGB, "GL_DOT3_RGB"},
-	{GL_DOT3_RGBA, "GL_DOT3_RGBA"},
-	{GL_IMPLEMENTATION_COLOR_READ_TYPE_OES,
-	 "GL_IMPLEMENTATION_COLOR_READ_TYPE_OES"},
-	{GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES,
-	 "GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES"},
-	{GL_PALETTE4_RGB8_OES, "GL_PALETTE4_RGB8_OES"},
-	{GL_PALETTE4_RGBA8_OES, "GL_PALETTE4_RGBA8_OES"},
-	{GL_PALETTE4_R5_G6_B5_OES, "GL_PALETTE4_R5_G6_B5_OES"},
-	{GL_PALETTE4_RGBA4_OES, "GL_PALETTE4_RGBA4_OES"},
-	{GL_PALETTE4_RGB5_A1_OES, "GL_PALETTE4_RGB5_A1_OES"},
-	{GL_PALETTE8_RGB8_OES, "GL_PALETTE8_RGB8_OES"},
-	{GL_PALETTE8_RGBA8_OES, "GL_PALETTE8_RGBA8_OES"},
-	{GL_PALETTE8_R5_G6_B5_OES, "GL_PALETTE8_R5_G6_B5_OES"},
-	{GL_PALETTE8_RGBA4_OES, "GL_PALETTE8_RGBA4_OES"},
-	{GL_PALETTE8_RGB5_A1_OES, "GL_PALETTE8_RGB5_A1_OES"},
-	{GL_POINT_SIZE_ARRAY_OES, "GL_POINT_SIZE_ARRAY_OES"},
-	{GL_POINT_SIZE_ARRAY_TYPE_OES, "GL_POINT_SIZE_ARRAY_TYPE_OES"},
-	{GL_POINT_SIZE_ARRAY_STRIDE_OES, "GL_POINT_SIZE_ARRAY_STRIDE_OES"},
-	{GL_POINT_SIZE_ARRAY_POINTER_OES, "GL_POINT_SIZE_ARRAY_POINTER_OES"},
-	{GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES,
-	 "GL_POINT_SIZE_ARRAY_BUFFER_BINDING_OES"},
-	{GL_POINT_SPRITE_OES, "GL_POINT_SPRITE_OES"},
-	{GL_COORD_REPLACE_OES, "GL_COORD_REPLACE_OES"},
-	{GL_OES_read_format, "GL_OES_read_format"},
-	{GL_OES_compressed_paletted_texture,
-	 "GL_OES_compressed_paletted_texture"},
-	{GL_OES_point_size_array, "GL_OES_point_size_array"},
-	{GL_OES_point_sprite, "GL_OES_point_sprite"},
-	{0, NULL},
-};
-
-char *
-QGLEnumString(GLenum val)
-{
-	int i;
-
-	for (i = 0; GLEnumStrings[i].name; i++)
-		if (GLEnumStrings[i].value == val)
-			return GLEnumStrings[i].name;
-
-	return NULL;
-}
-
+#include "glenumstring.c"
 #endif
 
 void
@@ -886,7 +505,7 @@ qglTexCoordPointer(GLint size, GLenum type, GLsizei stride,
 	tex_coords_ptr[current_texture] = pointer;
 
 	log_main("\tglTexCoordPointer(%d, %s, %d, TextureCoordinates_%d_%d);\n",
-		 size, QGLEnumString(type), stride, draw_count,
+		 size, GLEnumString(type), stride, draw_count,
 		 current_texture);
 #endif
 	glTexCoordPointer(size, type, stride, pointer);
@@ -901,7 +520,7 @@ qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 	color_ptr = pointer;
 
 	log_main("\tglColorPointer(%d, %s, %d, Colors_%d);\n",
-		 size, QGLEnumString(type), stride, draw_count);
+		 size, GLEnumString(type), stride, draw_count);
 #endif
     glColorPointer(size, type, stride, pointer);
 }
@@ -920,7 +539,7 @@ qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
 	vertices_new = 1;
 
 	log_main("\tglVertexPointer(%d, %s, %d, Vertices_%d);\n",
-		 size, QGLEnumString(type), stride, draw_count);
+		 size, GLEnumString(type), stride, draw_count);
 #endif
 	glVertexPointer(size, type, stride, pointer);
 }
@@ -1021,7 +640,7 @@ qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 	log_draws("\t};\n");
 
 	log_main("\tglDrawElements(%s, %d, %s, Indices_%d);\n",
-		 QGLEnumString(mode), count, QGLEnumString(type), draw_count);
+		 GLEnumString(mode), count, GLEnumString(type), draw_count);
 	draw_count++;
 
 	current_texture = 0;
@@ -1078,9 +697,9 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 	log_main("\t};\n");
 
 	log_main("\tglTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s, "
-		 "Texture_%d_%d);\n", QGLEnumString(target), level,
-		 QGLEnumString(internalformat), width, height, border,
-		 QGLEnumString(format), QGLEnumString(type), bound_texture,
+		 "Texture_%d_%d);\n", GLEnumString(target), level,
+		 GLEnumString(internalformat), width, height, border,
+		 GLEnumString(format), GLEnumString(type), bound_texture,
 		 level);
 #endif
 	glTexImage2D(target, level, internalformat, width, height, border,
@@ -1093,8 +712,8 @@ qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		 const GLvoid *pixels)
 {
 	log_main("\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n",
-		 QGLEnumString(target), level, xoffset, yoffset, width, height,
-		 QGLEnumString(format), QGLEnumString(type), pixels);
+		 GLEnumString(target), level, xoffset, yoffset, width, height,
+		 GLEnumString(format), GLEnumString(type), pixels);
 	glTexSubImage2D(target, level, xoffset, yoffset, width, height, format,
 			type, pixels);
 }
@@ -1112,7 +731,7 @@ qglBindTexture(GLenum target, GLuint texture)
 {
 #ifdef QGL_LOG_GL_CALLS
 	bound_texture = texture;
-	log_main("\tglBindTexture(%s, %u);\n", QGLEnumString(target), texture);
+	log_main("\tglBindTexture(%s, %u);\n", GLEnumString(target), texture);
 #endif
 	glBindTexture(target, texture);
 }
@@ -1125,7 +744,7 @@ qglActiveTexture(GLenum texture)
 		current_texture = 1;
 	else
 		current_texture = 0;
-	log_main("\tglActiveTexture(%s);\n", QGLEnumString(texture));
+	log_main("\tglActiveTexture(%s);\n", GLEnumString(texture));
 #endif
 	glActiveTexture(texture);
 }
@@ -1133,14 +752,14 @@ qglActiveTexture(GLenum texture)
 void
 qglDisableClientState(GLenum array)
 {
-	log_main("\tglDisableClientState(%s);\n", QGLEnumString(array));
+	log_main("\tglDisableClientState(%s);\n", GLEnumString(array));
 	glDisableClientState(array);
 }
 
 void
 qglAlphaFunc(GLenum func, GLclampf ref)
 {
-	log_main("\tglAlphaFunc(%s, %f);\n", QGLEnumString(func), ref);
+	log_main("\tglAlphaFunc(%s, %f);\n", GLEnumString(func), ref);
 	glAlphaFunc(func, ref);
 }
 
@@ -1161,7 +780,7 @@ qglClearDepthf(GLclampf depth)
 void
 qglClipPlanef(GLenum plane, const GLfloat *equation)
 {
-	log_main("\tglClipPlanef(%s, %p);\n", QGLEnumString(plane), equation);
+	log_main("\tglClipPlanef(%s, %p);\n", GLEnumString(plane), equation);
 	glClipPlanef(plane, equation);
 }
 
@@ -1189,8 +808,8 @@ qglLineWidth(GLfloat width)
 void
 qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
-	log_main("\tglMaterialf(%s, %s, %f);\n", QGLEnumString(face),
-		 QGLEnumString(pname), param);
+	log_main("\tglMaterialf(%s, %s, %f);\n", GLEnumString(face),
+		 GLEnumString(pname), param);
 	glMaterialf(face, pname, param);
 }
 
@@ -1198,7 +817,7 @@ void
 qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
 	log_main("\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n",
-		 QGLEnumString(target), s, t, r, q);
+		 GLEnumString(target), s, t, r, q);
 	glMultiTexCoord4f(target, s, t, r, q);
 }
 
@@ -1221,8 +840,8 @@ qglPolygonOffset(GLfloat factor, GLfloat units)
 void
 qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
-	log_main("\tglTexEnvf(%s, %s, %f);\n", QGLEnumString(target),
-		 QGLEnumString(pname), param);
+	log_main("\tglTexEnvf(%s, %s, %f);\n", GLEnumString(target),
+		 GLEnumString(pname), param);
 	glTexEnvf(target, pname, param);
 }
 
@@ -1236,22 +855,22 @@ qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
 void
 qglAlphaFuncx(GLenum func, GLclampx ref)
 {
-	log_main("\tglAlphaFuncx(%s, %d);\n", QGLEnumString(func), ref);
+	log_main("\tglAlphaFuncx(%s, %d);\n", GLEnumString(func), ref);
 	glAlphaFuncx(func, ref);
 }
 
 void
 qglBlendFunc(GLenum sfactor, GLenum dfactor)
 {
-	log_main("\tglBlendFunc(%s, %s);\n", QGLEnumString(sfactor),
-		 QGLEnumString(dfactor));
+	log_main("\tglBlendFunc(%s, %s);\n", GLEnumString(sfactor),
+		 GLEnumString(dfactor));
 	glBlendFunc(sfactor, dfactor);
 }
 
 void
 qglClear(GLbitfield mask)
 {
-	log_main("\tglClear(%s);\n", QGLEnumString(mask));
+	log_main("\tglClear(%s);\n", GLEnumString(mask));
 	glClear(mask);
 }
 
@@ -1265,7 +884,7 @@ qglClearStencil(GLint s)
 void
 qglClientActiveTexture(GLenum texture)
 {
-	log_main("\tglClientActiveTexture(%s);\n", QGLEnumString(texture));
+	log_main("\tglClientActiveTexture(%s);\n", GLEnumString(texture));
 	glClientActiveTexture(texture);
 }
 
@@ -1279,14 +898,14 @@ qglColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 void
 qglCullFace(GLenum mode)
 {
-	log_main("\tglCullFace(%s);\n", QGLEnumString(mode));
+	log_main("\tglCullFace(%s);\n", GLEnumString(mode));
 	glCullFace(mode);
 }
 
 void
 qglDepthFunc(GLenum func)
 {
-	log_main("\tglDepthFunc(%s);\n", QGLEnumString(func));
+	log_main("\tglDepthFunc(%s);\n", GLEnumString(func));
 	glDepthFunc(func);
 }
 
@@ -1300,14 +919,14 @@ qglDepthMask(GLboolean flag)
 void
 qglDisable(GLenum cap)
 {
-	log_main("\tglDisable(%s);\n", QGLEnumString(cap));
+	log_main("\tglDisable(%s);\n", GLEnumString(cap));
 	glDisable(cap);
 }
 
 void
 qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
-	log_main("\tglDrawArrays(%s, %d, %d);\n", QGLEnumString(mode),
+	log_main("\tglDrawArrays(%s, %d, %d);\n", GLEnumString(mode),
 		 first, count);
 	glDrawArrays(mode, first, count);
 }
@@ -1315,14 +934,14 @@ qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 void
 qglEnable(GLenum cap)
 {
-	log_main("\tglEnable(%s);\n", QGLEnumString(cap));
+	log_main("\tglEnable(%s);\n", GLEnumString(cap));
 	glEnable(cap);
 }
 
 void
 qglEnableClientState(GLenum array)
 {
-	log_main("\tglEnableClientState(%s);\n", QGLEnumString(array));
+	log_main("\tglEnableClientState(%s);\n", GLEnumString(array));
 	glEnableClientState(array);
 }
 
@@ -1343,7 +962,7 @@ qglFlush(void)
 void
 qglGetBooleanv(GLenum pname, GLboolean *params)
 {
-	log_main("\tglGetBooleanv(%s, %p);\n", QGLEnumString(pname), params);
+	log_main("\tglGetBooleanv(%s, %p);\n", GLEnumString(pname), params);
 	glGetBooleanv(pname, params);
 }
 
@@ -1357,7 +976,7 @@ qglGetError(void)
 void
 qglGetIntegerv(GLenum pname, GLint *params)
 {
-	log_main("\tglGetIntegerv(%s, %p);\n", QGLEnumString(pname), params);
+	log_main("\tglGetIntegerv(%s, %p);\n", GLEnumString(pname), params);
 	glGetIntegerv(pname, params);
 }
 
@@ -1371,7 +990,7 @@ qglLoadIdentity(void)
 void
 qglMatrixMode(GLenum mode)
 {
-	log_main("\tglMatrixMode(%s);\n", QGLEnumString(mode));
+	log_main("\tglMatrixMode(%s);\n", GLEnumString(mode));
 	glMatrixMode(mode);
 }
 
@@ -1394,7 +1013,7 @@ qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
 	      GLenum type, GLvoid *pixels)
 {
 	log_main("\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width,
-		 height, QGLEnumString(format), QGLEnumString(type), pixels);
+		 height, GLEnumString(format), GLEnumString(type), pixels);
 	glReadPixels(x, y, width, height, format, type, pixels);
 }
 
@@ -1408,46 +1027,46 @@ qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 void
 qglShadeModel(GLenum mode)
 {
-	log_main("\tglShadeModel(%s);\n", QGLEnumString(mode));
+	log_main("\tglShadeModel(%s);\n", GLEnumString(mode));
 	glShadeModel(mode);
 }
 
 void
 qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
-	log_main("\tglStencilFunc(%s, %d, %s);\n", QGLEnumString(func), ref,
-		 QGLEnumString(mask));
+	log_main("\tglStencilFunc(%s, %d, %s);\n", GLEnumString(func), ref,
+		 GLEnumString(mask));
 	glStencilFunc(func, ref, mask);
 }
 
 void
 qglStencilMask(GLuint mask)
 {
-	log_main("\tglStencilMask(%s);\n", QGLEnumString(mask));
+	log_main("\tglStencilMask(%s);\n", GLEnumString(mask));
 	glStencilMask(mask);
 }
 
 void
 qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
-	log_main("\tglStencilOp(%s, %s, %s);\n", QGLEnumString(fail),
-		 QGLEnumString(zfail), QGLEnumString(zpass));
+	log_main("\tglStencilOp(%s, %s, %s);\n", GLEnumString(fail),
+		 GLEnumString(zfail), GLEnumString(zpass));
 	glStencilOp(fail, zfail, zpass);
 }
 
 void
 qglTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-	log_main("\tglTexEnvi(%s, %s, %d);\n", QGLEnumString(target),
-		 QGLEnumString(pname), param);
+	log_main("\tglTexEnvi(%s, %s, %d);\n", GLEnumString(target),
+		 GLEnumString(pname), param);
 	glTexEnvi(target, pname, param);
 }
 
 void
 qglTexParameteri(GLenum target, GLenum pname, GLint param)
 {
-	log_main("\tglTexParameteri(%s, %s, %d);\n", QGLEnumString(target),
-		 QGLEnumString(pname), param);
+	log_main("\tglTexParameteri(%s, %s, %d);\n", GLEnumString(target),
+		 GLEnumString(pname), param);
 	glTexParameteri(target, pname, param);
 }
 
