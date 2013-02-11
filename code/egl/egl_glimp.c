@@ -324,13 +324,93 @@ void GLimp_LogComment(char *comment)
 #warning enabling GL logging.
 
 static FILE *log_main_file;
+static FILE *log_header_file;
 static FILE *log_draws_file;
 static FILE *log_textures_file;
-static FILE *log_header_file;
+static FILE *log_textures_header_file;
 
 static int framecount;
 static int draw_count;
 static int matrix_count;
+
+void
+log_legal_preamble(FILE *log)
+{
+	fprintf(log, "/*\n");
+	fprintf(log, " *\n");
+	fprintf(log, " * This file contains data dumped from the game "
+		"Quake 3 Arena. This data is\n");
+	fprintf(log, " * therefor property of ID software and may under no circumstances be\n");
+	fprintf(log, " * distributed.\n");
+	fprintf(log, " *\n");
+	fprintf(log, " */\n\n");
+}
+
+void
+log_textures_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_textures_file;
+
+	if (log) {
+		fprintf(log, "/* complete. */\n");
+
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d_textures.c", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	log_legal_preamble(log);
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Texture data for frame %04d.\n", framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#include <GLES/gl.h>\n\n");
+
+	fprintf(log, "#include \"texture.h\"\n");
+	fprintf(log, "#include \"frame_%04d_textures.h\"\n\n", framecount);
+
+	log_textures_file = log;
+}
+
+void
+log_textures_header_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_textures_header_file;
+
+	if (log) {
+		fprintf(log, "\n");
+		fprintf(log, "#endif /* FRAME_%04d_TEXTURES_H */\n",
+			framecount - 1);
+
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d_textures.h", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Texture data header for frame %04d.\n", framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#ifndef FRAME_%04d_TEXTURES_H\n", framecount);
+	fprintf(log, "#define FRAME_%04d_TEXTURES_H 1\n\n", framecount);
+
+	log_textures_header_file = log;
+}
 
 void
 log_frame_new(void)
@@ -341,18 +421,24 @@ log_frame_new(void)
 
 	if (log_main_file)
 		fclose(log_main_file);
-	if (log_draws_file)
-		fclose(log_draws_file);
-	if (log_textures_file)
-		fclose(log_textures_file);
 	if (log_header_file)
 		fclose(log_header_file);
+	if (log_draws_file)
+		fclose(log_draws_file);
 
 	framecount++;
 
 	snprintf(buffer, sizeof(buffer), "frame_%04d.c", framecount);
 	log_main_file = fopen(buffer, "w");
 	if (!log_main_file) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d.h", framecount);
+	log_header_file = fopen(buffer, "w");
+	if (!log_header_file) {
 		fprintf(stderr, "Error opening %s: %s\n", buffer,
 			strerror(errno));
 		exit(1);
@@ -366,21 +452,8 @@ log_frame_new(void)
 		exit(1);
 	}
 
-	snprintf(buffer, sizeof(buffer), "frame_%04d_textures.c", framecount);
-	log_textures_file = fopen(buffer, "w");
-	if (!log_textures_file) {
-		fprintf(stderr, "Error opening %s: %s\n", buffer,
-			strerror(errno));
-		exit(1);
-	}
-
-	snprintf(buffer, sizeof(buffer), "frame_%04d.h", framecount);
-	log_header_file = fopen(buffer, "w");
-	if (!log_header_file) {
-		fprintf(stderr, "Error opening %s: %s\n", buffer,
-			strerror(errno));
-		exit(1);
-	}
+	log_textures_new();
+	log_textures_header_new();
 
 	draw_count = 0;
 	matrix_count = 0;
@@ -407,9 +480,31 @@ log_draws(const char *template, ...)
 	vfprintf(log_draws_file, template, ap);
 	va_end(ap);
 }
+
+void
+log_textures(const char *template, ...)
+{
+	va_list ap;
+
+	va_start(ap, template);
+	vfprintf(log_textures_file, template, ap);
+	va_end(ap);
+}
+
+void
+log_textures_header(const char *template, ...)
+{
+	va_list ap;
+
+	va_start(ap, template);
+	vfprintf(log_textures_header_file, template, ap);
+	va_end(ap);
+}
 #else
 #define log_main(msg, ...)
 #define log_draws(msg, ...)
+#define log_textures(msg, ...)
+#define log_textures_header(msg, ...)
 #endif
 
 void GLimp_EndFrame(void)
@@ -466,6 +561,166 @@ void GLimp_WakeRenderer(void *data)
 #ifdef QGL_LOG_GL_CALLS
 #include "glenumstring.c"
 #endif
+
+#ifdef QGL_LOG_GL_CALLS
+#define TEXTURE_LEVEL_COUNT 12
+
+int texture_id;
+
+int texture_dump_start;
+int texture_format;
+struct {
+	int width;
+	int height;
+} texture_levels[TEXTURE_LEVEL_COUNT];
+int texture_level_count;
+int texture_filter_min;
+int texture_filter_mag;
+int texture_wrap_s;
+int texture_wrap_t;
+
+void
+log_texture_data(int level, int format, int width, int height,
+		 const void *pixels)
+{
+	const unsigned int *data = pixels;
+	int size, i;
+
+	if (!texture_dump_start)
+		return;
+
+	if (level >= TEXTURE_LEVEL_COUNT) {
+		fprintf(stderr, "%s: Too many levels assigned to texture %d\n",
+			__func__, texture_id);
+		return;
+	}
+
+	if (!level)
+		texture_format = format;
+
+	texture_levels[level].width = width;
+	texture_levels[level].height = height;
+
+	size = width * height;
+
+
+	log_textures("unsigned int Texture_%d_%d[] = {\n", texture_id, level);
+	for (i = 0; i < size; i++) {
+		if (!(i % 4))
+			log_textures("\t0x%08X,", data[i]);
+		else if ((i % 4) == 3)
+			log_textures(" 0x%08X,\n", data[i]);
+		else
+			log_textures(" 0x%08X,", data[i]);
+	}
+	if ((i % 4))
+		log_textures("\n");
+	log_textures("};\n");
+
+	level++;
+	if (level > texture_level_count)
+		texture_level_count = level;
+
+	return;
+}
+
+void
+log_texture_parameter(GLenum pname, int value)
+{
+	if (!texture_dump_start)
+		return;
+
+	switch (pname) {
+	case GL_TEXTURE_MIN_FILTER:
+		texture_filter_min = value;
+		return;
+	case GL_TEXTURE_MAG_FILTER:
+		texture_filter_mag = value;
+		return;
+	case GL_TEXTURE_WRAP_S:
+		texture_wrap_s = value;
+		return;
+	case GL_TEXTURE_WRAP_T:
+		texture_wrap_t = value;
+		return;
+	default:
+		fprintf(stderr, "%s: unknown pname 0x%04X\n", __func__, pname);
+		return;
+	}
+}
+
+void
+log_texture_struct(void)
+{
+	int i;
+
+	log_textures("struct texture Texture_%d = {\n", texture_id);
+	log_textures("\t.id = %d,\n", texture_id);
+
+	for (i = 0; i < texture_level_count; i++) {
+		log_textures("\t.levels[%d] = {\n", i);
+		log_textures("\t\t.level = %d,\n", i);
+		log_textures("\t\t.width = %d,\n", texture_levels[i].width);
+		log_textures("\t\t.height = %d,\n", texture_levels[i].height);
+		log_textures("\t\t.data = Texture_%d_%d,\n", texture_id, i);
+		log_textures("\t},\n");
+	}
+
+	log_textures("\t.level_count = %d,\n", texture_level_count);
+
+	log_textures("\t.format = %s,\n", GLEnumString(texture_format));
+
+	log_textures("\t.filter_min = %s,\n", GLEnumString(texture_filter_min));
+	log_textures("\t.filter_mag = %s,\n", GLEnumString(texture_filter_mag));
+	log_textures("\t.wrap_s = %s,\n", GLEnumString(texture_wrap_s));
+	log_textures("\t.wrap_t = %s,\n", GLEnumString(texture_wrap_t));
+	log_textures("};\n\n");
+
+	log_textures_header("struct texture Texture_%d;\n", texture_id);
+}
+
+void
+log_texture_bind(unsigned int id)
+{
+	if (texture_format) {
+		int i;
+
+		if (id)
+			fprintf(stderr, "%s(%d): texture %d was still bound.\n",
+				__func__, id, texture_id);
+
+		log_texture_struct();
+
+		log_main("\ttexture_load(&Texture_%d);\n", texture_id);
+
+		texture_id = 0;
+		texture_format = 0;
+		for (i = 0; i < texture_level_count; i++) {
+			texture_levels[i].width = 0;
+			texture_levels[i].height = 0;
+		}
+		texture_level_count = 0;
+		texture_filter_min = 0;
+		texture_filter_mag = 0;
+		texture_wrap_s = 0;
+		texture_wrap_t = 0;
+	}
+
+	texture_id = id;
+}
+
+void
+log_texture_delete(unsigned int id)
+{
+	texture_dump_start = 1;
+}
+#else
+#define log_texture_data(a, b, c, d, e)
+#define log_texture_parameter(a, b)
+#define log_texture_bind(a)
+#define log_texture_delete(a)
+#endif /* QGL_LOG_GL_CALLS */
+
 
 void
 qglDrawBuffer(GLenum mode)
@@ -671,37 +926,7 @@ qglTexImage2D(GLenum target, GLint level, GLint internalformat,
 	      GLsizei width, GLsizei height, GLint border,
 	      GLenum format, GLenum type, const GLvoid *pixels)
 {
-#ifdef QGL_LOG_GL_CALLS
-	const unsigned int *texture = pixels;
-	int i;
-
-	if (internalformat == GL_RGB) {
-		printf("Texture %d is flagged as an RGB texture!\n",
-		       bound_texture);
-		internalformat = GL_RGBA;
-	}
-
-	log_main("\tunsigned int Texture_%d_%d[%d * %d] = {\n",
-		 bound_texture, level, width, height);
-	for (i = 0; i < (width * height); i++) {
-		if (!(i % 4))
-			log_main("\t\t0x%08X,", texture[i]);
-		else if ((i % 4) == 3)
-			log_main(" 0x%08X,\n", texture[i]);
-		else
-			log_main(" 0x%08X,", texture[i]);
-	}
-
-	if ((i % 4))
-		log_main("\n");
-	log_main("\t};\n");
-
-	log_main("\tglTexImage2D(%s, %d, %s, %d, %d, %d, %s, %s, "
-		 "Texture_%d_%d);\n", GLEnumString(target), level,
-		 GLEnumString(internalformat), width, height, border,
-		 GLEnumString(format), GLEnumString(type), bound_texture,
-		 level);
-#endif
+	log_texture_data(level, format, width, height, pixels);
 	glTexImage2D(target, level, internalformat, width, height, border,
 		     format, type, pixels);
 }
@@ -721,18 +946,14 @@ qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 void
 qglDeleteTextures(GLsizei n, const GLuint *textures)
 {
-	log_main("\ttmp = %d;\n", textures[0]);
-	log_main("\tglDeleteTextures(%d, &tmp);\n", n);
+	log_texture_delete(textures[0]);
 	glDeleteTextures(n, textures);
 }
 
 void
 qglBindTexture(GLenum target, GLuint texture)
 {
-#ifdef QGL_LOG_GL_CALLS
-	bound_texture = texture;
-	log_main("\tglBindTexture(%s, %u);\n", GLEnumString(target), texture);
-#endif
+	log_texture_bind(texture);
 	glBindTexture(target, texture);
 }
 
@@ -969,7 +1190,6 @@ qglGetBooleanv(GLenum pname, GLboolean *params)
 GLenum
 qglGetError(void)
 {
-	log_main("\tglGetError();\n");
 	return glGetError();
 }
 
@@ -1065,8 +1285,7 @@ qglTexEnvi(GLenum target, GLenum pname, GLint param)
 void
 qglTexParameteri(GLenum target, GLenum pname, GLint param)
 {
-	log_main("\tglTexParameteri(%s, %s, %d);\n", GLEnumString(target),
-		 GLEnumString(pname), param);
+	log_texture_parameter(pname, param);
 	glTexParameteri(target, pname, param);
 }
 
