@@ -315,7 +315,11 @@ ifeq ($(PLATFORM),linux)
   ifeq ($(USE_LIMARE),1)
 	CLIENT_LIBS=$(SDL_LIBS) -llimare
   else
+  ifeq ($(USE_GLES2),1)
+	CLIENT_LIBS=$(SDL_LIBS) -lGLESv2
+  else
 	CLIENT_LIBS=$(SDL_LIBS) -lGLESv1_CM
+  endif
   endif
 
   ifeq ($(USE_OPENAL),1)
@@ -1495,7 +1499,11 @@ endif
 ifeq ($(USE_LIMARE),1)
 	Q3POBJ += $(B)/client/limare_glimp.o
 else
+ifeq ($(USE_GLES2),1)
+	Q3POBJ += $(B)/client/gles2_glimp.o
+else
 	Q3POBJ += $(B)/client/egl_glimp.o
+endif
 endif
 
 Q3POBJ += \
