@@ -99,26 +99,26 @@ program_single_texture_load(void)
 		"attribute vec2 aTexCoord0;\n"
 		"\n"
 		"varying vec4 vColor;\n"
-		"varying vec4 vTexCoord0;\n"
+		"varying vec2 vTexCoord0;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
 		"    gl_Position = uMatrix * aPosition;\n"
 		"    vColor = aColor;\n"
-		"    vTexCoord0 = vec4(aTexCoord0, 1.0, 1.0);\n"
+		"    vTexCoord0 = aTexCoord0;\n"
 		"}\n";
 
 	static const char* fragment_source =
 		"precision mediump float;\n"
 		"\n"
 		"varying vec4 vColor;\n"
-		"varying vec4 vTexCoord0;\n"
+		"varying vec2 vTexCoord0;\n"
 		"\n"
 		"uniform sampler2D uTexture0;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
-		"    gl_FragColor = clamp(vColor * texture2DProj(uTexture0, vTexCoord0), 0.0, 1.0);\n"
+		"    gl_FragColor = clamp(vColor * texture2D(uTexture0, vTexCoord0), 0.0, 1.0);\n"
 		"}\n";
 	int ret;
 
@@ -148,23 +148,23 @@ program_dual_texture_load(void)
 		"attribute vec2 aTexCoord1;\n"
 		"\n"
 		"varying vec4 vColor;\n"
-		"varying vec4 vTexCoord0;\n"
-		"varying vec4 vTexCoord1;\n"
+		"varying vec2 vTexCoord0;\n"
+		"varying vec2 vTexCoord1;\n"
 		"\n"
 		"void main()\n"
 		"{\n"
 		"    gl_Position = uMatrix * aPosition;\n"
 		"    vColor = aColor;\n"
-		"    vTexCoord0 = vec4(aTexCoord0, 1.0, 1.0);\n"
-		"    vTexCoord1 = vec4(aTexCoord1, 1.0, 1.0);\n"
+		"    vTexCoord0 = aTexCoord0;\n"
+		"    vTexCoord1 = aTexCoord1;\n"
 		"}\n";
 
 	static const char* fragment_source =
 		"precision mediump float;\n"
 		"\n"
 		"varying vec4 vColor;\n"
-		"varying vec4 vTexCoord0;\n"
-		"varying vec4 vTexCoord1;\n"
+		"varying vec2 vTexCoord0;\n"
+		"varying vec2 vTexCoord1;\n"
 		"\n"
 		"uniform sampler2D uTexture0;\n"
 		"uniform sampler2D uTexture1;\n"
@@ -172,8 +172,8 @@ program_dual_texture_load(void)
 		"void main()\n"
 		"{\n"
 		"    gl_FragColor = clamp(vColor * "
-		"texture2DProj(uTexture0, vTexCoord0) *"
-		"texture2DProj(uTexture1, vTexCoord1),"
+		"texture2D(uTexture0, vTexCoord0) *"
+		"texture2D(uTexture1, vTexCoord1),"
 		" 0.0, 1.0);\n"
 		"}\n";
 	int ret;
