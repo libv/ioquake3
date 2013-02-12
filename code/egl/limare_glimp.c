@@ -343,6 +343,11 @@ qglMatrixMode(GLenum mode)
 	matrix_mode = mode;
 }
 
+static void qglMultiTexCoord2f(GLenum target, GLfloat s, GLfloat t)
+{
+	qglMultiTexCoord4f(target,s,t,1,1);
+}
+
 void
 GLimp_Init(void)
 {
@@ -357,7 +362,7 @@ GLimp_Init(void)
 
 	bzero(&glConfig, sizeof(glConfig));
 
-	limare_buffer_clear(state);
+	//limare_buffer_clear(state);
 
 	fbdev_size(&fb_width, &fb_height);
 
@@ -393,6 +398,11 @@ GLimp_Init(void)
 	limare_program_current(state, program_single_texture);
 	program_current = program_single_texture;
 
+	qglMultiTexCoord2fARB = qglMultiTexCoord2f;
+	qglActiveTextureARB = qglActiveTexture;
+	qglClientActiveTextureARB = qglClientActiveTexture;
+	glConfig.numTextureUnits = 2;
+
 	matrix_init();
 
 	limare_frame_new(state);
@@ -422,7 +432,8 @@ void GLimp_EndFrame(void)
 
 	limare_buffer_swap(state);
 
-	//printf("Finished frame %d\n", frame_count);
+	//if (!(frame_count % 0x07))
+	//	printf("Finished frame %d\n", frame_count);
 
 	draw_count = 0;
 	frame_count++;
@@ -929,7 +940,7 @@ qglDrawElements(GLenum mode, GLsizei indices_count, GLenum type,
 					 color_size, color_pitch, count,
 					 (void *) color_ptr);
 
-	if (coord0_active)
+	if (coord0_active && texture0_active)
 		limare_attribute_pointer(state, "aTexCoord0",
 					 LIMARE_ATTRIB_FLOAT,
 					 coord0_size, coord0_pitch, count,
@@ -941,7 +952,7 @@ qglDrawElements(GLenum mode, GLsizei indices_count, GLenum type,
 		limare_texture_attach(state, "uTexture0", handle);
 	}
 
-	if (coord1_active)
+	if (coord1_active && texture1_active)
 		limare_attribute_pointer(state, "aTexCoord1",
 					 LIMARE_ATTRIB_FLOAT,
 					 coord1_size, coord1_pitch, count,
