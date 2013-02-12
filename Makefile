@@ -312,7 +312,11 @@ ifeq ($(PLATFORM),linux)
   THREAD_LIBS=-lpthread
   LIBS=-ldl -lm
 
-  CLIENT_LIBS=$(SDL_LIBS) -lGLESv1_CM
+  ifeq ($(USE_LIMARE),1)
+	CLIENT_LIBS=$(SDL_LIBS) -llimare
+  else
+	CLIENT_LIBS=$(SDL_LIBS) -lGLESv1_CM
+  endif
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -1488,8 +1492,13 @@ ifeq ($(USE_MUMBLE),1)
     $(B)/client/libmumblelink.o
 endif
 
+ifeq ($(USE_LIMARE),1)
+	Q3POBJ += $(B)/client/limare_glimp.o
+else
+	Q3POBJ += $(B)/client/egl_glimp.o
+endif
+
 Q3POBJ += \
-  $(B)/client/egl_glimp.o \
   $(B)/client/egl_input.o \
   $(B)/client/sdl_snd.o
 
