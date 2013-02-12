@@ -21,7 +21,7 @@
 #include "../client/client.h"
 #include "../renderer/tr_local.h"
 
-#define QGL_LOG_GL_CALLS 1
+//#define QGL_LOG_GL_CALLS 1
 #ifdef QGL_LOG_GL_CALLS
 void log_frame_new(void);
 #endif
@@ -255,7 +255,8 @@ static void GLimp_InitExtensions(void)
 		  "...GL_EXT_texture_filter_anisotropic not found\n");
 }
 
-void GLimp_Init(void)
+void
+GLimp_Init(void)
 {
 	EGLint major, minor;
 	int fb_width, fb_height;
@@ -324,6 +325,7 @@ void GLimp_LogComment(char *comment)
 #warning enabling GL logging.
 
 static FILE *log_main_file;
+static FILE *log_limare_file;
 static FILE *log_header_file;
 static FILE *log_draws_file;
 static FILE *log_textures_file;
@@ -344,6 +346,163 @@ log_legal_preamble(FILE *log)
 	fprintf(log, " * distributed.\n");
 	fprintf(log, " *\n");
 	fprintf(log, " */\n\n");
+}
+
+void
+log_main_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_main_file;
+
+	if (log) {
+		fprintf(log, "};\n");
+
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d.c", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	log_legal_preamble(log);
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Top level gl commands for frame %04d.\n", framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#include <stdlib.h>\n\n");
+
+	fprintf(log, "#include <GLES/gl.h>\n\n");
+
+	fprintf(log, "#include \"texture.h\"\n");
+	fprintf(log, "#include \"textures_all.h\"\n");
+	fprintf(log, "#include \"frame_%04d_textures.h\"\n\n", framecount);
+
+	fprintf(log, "#include \"draw.h\"\n");
+	fprintf(log, "#include \"frame_%04d.h\"\n\n", framecount);
+
+	fprintf(log, "void\n");
+	fprintf(log, "frame_%04d_draw(void)\n", framecount);
+	fprintf(log, "{\n");
+
+	log_main_file = log;
+}
+
+void
+log_limare_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_limare_file;
+
+	if (log) {
+		fprintf(log, "};\n");
+
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d_limare.c", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	log_legal_preamble(log);
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Top level limare commands for frame %04d.\n",
+		framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#include <stdlib.h>\n\n");
+
+	fprintf(log, "#include <GLES/gl.h>\n\n");
+	fprintf(log, "#include <limare.h>\n\n");
+
+	fprintf(log, "#include \"texture.h\"\n");
+	fprintf(log, "#include \"textures_all.h\"\n");
+	fprintf(log, "#include \"frame_%04d_textures.h\"\n\n", framecount);
+
+	fprintf(log, "#include \"draw.h\"\n");
+	fprintf(log, "#include \"frame_%04d.h\"\n\n", framecount);
+
+	fprintf(log, "void\n");
+	fprintf(log, "frame_%04d_draw(void)\n", framecount);
+	fprintf(log, "{\n");
+
+	log_limare_file = log;
+}
+
+void
+log_header_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_header_file;
+
+	if (log) {
+		fprintf(log, "\n");
+		fprintf(log, "void frame_%04d_draw(void);\n", framecount - 1);
+		fprintf(log, "\n");
+		fprintf(log, "#endif /* FRAME_%04d_H */\n",
+			framecount - 1);
+
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d.h", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Top level header for frame %04d.\n",
+		framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#ifndef FRAME_%04d_H\n", framecount);
+	fprintf(log, "#define FRAME_%04d_H 1\n\n", framecount);
+
+	log_header_file = log;
+}
+
+void
+log_draws_new(void)
+{
+	char buffer[1024];
+	FILE *log = log_draws_file;
+
+	if (log) {
+		fprintf(log, "/* complete. */\n");
+		fclose(log);
+	}
+
+	snprintf(buffer, sizeof(buffer), "frame_%04d_draws.c", framecount);
+	log = fopen(buffer, "w");
+	if (!log) {
+		fprintf(stderr, "Error opening %s: %s\n", buffer,
+			strerror(errno));
+		exit(1);
+	}
+
+	log_legal_preamble(log);
+
+	fprintf(log, "/*\n");
+	fprintf(log, " * Draws data for frame %04d.\n", framecount);
+	fprintf(log, " */\n\n");
+
+	fprintf(log, "#include <GLES/gl.h>\n\n");
+
+	fprintf(log, "#include \"draw.h\"\n");
+
+	log_draws_file = log;
 }
 
 void
@@ -415,43 +574,14 @@ log_textures_header_new(void)
 void
 log_frame_new(void)
 {
-	char buffer[1024];
-
 	printf("Finished dumping replay frame %d\n", framecount);
-
-	if (log_main_file)
-		fclose(log_main_file);
-	if (log_header_file)
-		fclose(log_header_file);
-	if (log_draws_file)
-		fclose(log_draws_file);
 
 	framecount++;
 
-	snprintf(buffer, sizeof(buffer), "frame_%04d.c", framecount);
-	log_main_file = fopen(buffer, "w");
-	if (!log_main_file) {
-		fprintf(stderr, "Error opening %s: %s\n", buffer,
-			strerror(errno));
-		exit(1);
-	}
-
-	snprintf(buffer, sizeof(buffer), "frame_%04d.h", framecount);
-	log_header_file = fopen(buffer, "w");
-	if (!log_header_file) {
-		fprintf(stderr, "Error opening %s: %s\n", buffer,
-			strerror(errno));
-		exit(1);
-	}
-
-	snprintf(buffer, sizeof(buffer), "frame_%04d_draws.c", framecount);
-	log_draws_file = fopen(buffer, "w");
-	if (!log_draws_file) {
-		fprintf(stderr, "Error opening %s: %s\n", buffer,
-			strerror(errno));
-		exit(1);
-	}
-
+	log_main_new();
+	log_limare_new();
+	log_header_new();
+	log_draws_new();
 	log_textures_new();
 	log_textures_header_new();
 
@@ -468,6 +598,40 @@ log_main(const char *template, ...)
 
 	va_start(ap, template);
 	vfprintf(log_main_file, template, ap);
+	va_end(ap);
+}
+
+void
+log_limare(const char *template, ...)
+{
+	va_list ap;
+
+	va_start(ap, template);
+	vfprintf(log_limare_file, template, ap);
+	va_end(ap);
+}
+
+void
+log_all(const char *template, ...)
+{
+	va_list ap;
+
+	va_start(ap, template);
+	vfprintf(log_main_file, template, ap);
+	//va_end(ap);
+
+	//va_start(ap, template);
+	vfprintf(log_limare_file, template, ap);
+	va_end(ap);
+}
+
+void
+log_header(const char *template, ...)
+{
+	va_list ap;
+
+	va_start(ap, template);
+	vfprintf(log_header_file, template, ap);
 	va_end(ap);
 }
 
@@ -502,6 +666,9 @@ log_textures_header(const char *template, ...)
 }
 #else
 #define log_main(msg, ...)
+#define log_limare(msg, ...)
+#define log_all(msg, ...)
+#define log_header(msg, ...)
 #define log_draws(msg, ...)
 #define log_textures(msg, ...)
 #define log_textures_header(msg, ...)
@@ -558,28 +725,86 @@ void GLimp_WakeRenderer(void *data)
 {
 }
 
+void
+qglDrawBuffer(GLenum mode)
+{
+#ifdef QGL_LOG_GL_CALLS
+	log_frame_new();
+#endif
+}
+
+void
+qglNumVertices(GLint count)
+{
+}
+
+void
+qglLockArrays(GLint j, GLsizei size)
+{
+}
+
+void
+qglUnlockArrays(void)
+{
+}
+
 #ifdef QGL_LOG_GL_CALLS
 #include "glenumstring.c"
 #endif
 
 #ifdef QGL_LOG_GL_CALLS
+
+/*
+ * For tracking textures.
+ */
 #define TEXTURE_LEVEL_COUNT 12
 
-int texture_id;
+static int texture_id;
 
-int texture_dump_start;
-int texture_format;
-struct {
+static int texture_dump_start;
+static int texture_format;
+static struct {
 	int width;
 	int height;
 } texture_levels[TEXTURE_LEVEL_COUNT];
-int texture_level_count;
-int texture_filter_min;
-int texture_filter_mag;
-int texture_wrap_s;
-int texture_wrap_t;
+static int texture_level_count;
+static int texture_filter_min;
+static int texture_filter_mag;
+static int texture_wrap_s;
+static int texture_wrap_t;
 
-void
+/*
+ * For tracking draws.
+ */
+static int color_active;
+static int color_count;
+static int color_pitch;
+static const unsigned int *color_ptr;
+
+static int texture_current;
+static int texture_coord_current;
+
+static int coord0_active;
+static int coord0_count;
+static int coord0_pitch;
+static const unsigned int *coord0_ptr;
+
+static int texture0_active;
+static int texture0_id;
+
+static int coord1_active;
+static int coord1_count;
+static int coord1_pitch;
+static const unsigned int *coord1_ptr;
+
+static int texture1_active;
+static int texture1_id;
+
+static int vertex_count;
+static int vertex_pitch;
+static const unsigned int *vertex_ptr;
+
+static void
 log_texture_data(int level, int format, int width, int height,
 		 const void *pixels)
 {
@@ -624,7 +849,7 @@ log_texture_data(int level, int format, int width, int height,
 	return;
 }
 
-void
+static void
 log_texture_parameter(GLenum pname, int value)
 {
 	if (!texture_dump_start)
@@ -649,7 +874,7 @@ log_texture_parameter(GLenum pname, int value)
 	}
 }
 
-void
+static void
 log_texture_struct(void)
 {
 	int i;
@@ -679,7 +904,7 @@ log_texture_struct(void)
 	log_textures_header("struct texture Texture_%d;\n", texture_id);
 }
 
-void
+static void
 log_texture_bind(unsigned int id)
 {
 	if (texture_format) {
@@ -691,7 +916,7 @@ log_texture_bind(unsigned int id)
 
 		log_texture_struct();
 
-		log_main("\ttexture_load(&Texture_%d);\n", texture_id);
+		log_all("\ttexture_load(&Texture_%d);\n", texture_id);
 
 		texture_id = 0;
 		texture_format = 0;
@@ -707,183 +932,280 @@ log_texture_bind(unsigned int id)
 	}
 
 	texture_id = id;
+
+	if (texture_current)
+		texture1_id = id;
+	else
+		texture0_id = id;
 }
 
-void
+static void
 log_texture_delete(unsigned int id)
 {
 	texture_dump_start = 1;
 }
-#else
-#define log_texture_data(a, b, c, d, e)
-#define log_texture_parameter(a, b)
-#define log_texture_bind(a)
-#define log_texture_delete(a)
-#endif /* QGL_LOG_GL_CALLS */
 
-
-void
-qglDrawBuffer(GLenum mode)
+static void
+log_enable(GLenum cap)
 {
-#ifdef QGL_LOG_GL_CALLS
-	log_frame_new();
-#endif
+	if (cap == GL_TEXTURE_2D) {
+		if (texture_current)
+			texture1_active = 1;
+		else
+			texture0_active = 1;
+	} else {
+		log_main("\tglEnable(%s);\n", GLEnumString(cap));
+		log_limare("\tlimare_enable(state, %s);\n", GLEnumString(cap));
+	}
 }
 
-static int vertices_count;
-int bound_texture;
-
-void
-qglNumVertices(GLint count)
+static void
+log_disable(GLenum cap)
 {
-	vertices_count = count;
+	if (cap == GL_TEXTURE_2D) {
+		if (texture_current)
+			texture1_active = 0;
+		else
+			texture0_active = 0;
+	} else {
+		log_main("\tglDisable(%s);\n", GLEnumString(cap));
+		log_limare("\tlimare_disable(state, %s);\n", GLEnumString(cap));
+	}
 }
 
-void
-qglLockArrays(GLint j, GLsizei size)
+static void
+log_clientstate_disable(GLenum cap)
 {
+	if (cap == GL_TEXTURE_COORD_ARRAY) {
+		if (texture_coord_current) {
+			coord1_active = 0;
+			coord1_count = 0;
+			coord1_pitch = 0;
+			coord1_ptr = NULL;
+		} else {
+			coord0_active = 0;
+			coord0_count = 0;
+			coord0_pitch = 0;
+			coord0_ptr = NULL;
+		}
+	} else if (cap == GL_COLOR_ARRAY) {
+		color_active = 0;
+		color_count = 0;
+		color_pitch = 0;
+		color_ptr = NULL;
+	} else if (cap == GL_VERTEX_ARRAY)
+		log_main("\tglDisableClientState(GL_VERTEX_ARRAY);\n",
+			 __func__);
+	else
+		fprintf(stderr, "%s: Error: unknown capability: 0x%04X\n",
+		       __func__, cap);
 }
 
-void
-qglUnlockArrays(void)
+static void
+log_clientstate_enable(GLenum cap)
 {
+	if (cap == GL_TEXTURE_COORD_ARRAY) {
+		if (texture_coord_current)
+			coord1_active = 1;
+		else
+			coord0_active = 1;
+	} else if (cap == GL_COLOR_ARRAY)
+		color_active = 1;
+	else if (cap == GL_VERTEX_ARRAY)
+		log_main("\tglEnableClientState(GL_VERTEX_ARRAY);\n", __func__);
+	else
+		fprintf(stderr, "%s: Error: unknown capability: 0x%04X\n",
+			__func__, cap);
 }
 
-const float *tex_coords_ptr[2];
-int current_texture;
+static void
+log_texture_active(GLenum texture)
+{
+	if (texture > GL_TEXTURE1) {
+		printf("Error: %s(%s) not supported\n",
+		       __func__, GLEnumString(texture));
+		return;
+	}
+	texture_current = texture - GL_TEXTURE0;
+}
 
-void
-qglTexCoordPointer(GLint size, GLenum type, GLsizei stride,
+static void
+log_texture_client_active(GLenum texture)
+{
+	if (texture > GL_TEXTURE1) {
+		printf("Error: %s(%s) not supported\n",
+		       __func__, GLEnumString(texture));
+		return;
+	}
+	texture_coord_current = texture - GL_TEXTURE0;
+}
+
+static void
+log_color_pointer(GLint count, GLenum type, GLsizei stride,
+		  const GLvoid *pointer)
+{
+	if (type != GL_UNSIGNED_BYTE) {
+		fprintf(stderr, "%s: Error: unsupported type.\n", __func__);
+		return;
+	}
+
+	if (color_active) {
+		color_count = count;
+		color_pitch = stride;
+		color_ptr = pointer;
+	} else
+		fprintf(stderr, "%s: Error: color is not active.\n",
+		       __func__);
+}
+
+static void
+log_texcoord_pointer(GLint count, GLenum type, GLsizei stride,
+		     const GLvoid *pointer)
+{
+	if (type != GL_FLOAT) {
+		fprintf(stderr, "%s: Error: unsupported type.\n", __func__);
+		return;
+	}
+
+	if (texture_coord_current) {
+		coord1_count = count;
+		coord1_pitch = stride;
+		coord1_ptr = pointer;
+	} else {
+		coord0_count = count;
+		coord0_pitch = stride;
+		coord0_ptr = pointer;
+	}
+}
+
+static void
+log_vertex_pointer(GLint count, GLenum type, GLsizei stride,
 		   const GLvoid *pointer)
 {
-#ifdef QGL_LOG_GL_CALLS
-	tex_coords_ptr[current_texture] = pointer;
+	if (type != GL_FLOAT) {
+		fprintf(stderr, "%s: Error: unsupported type.\n", __func__);
+		return;
+	}
 
-	log_main("\tglTexCoordPointer(%d, %s, %d, TextureCoordinates_%d_%d);\n",
-		 size, GLEnumString(type), stride, draw_count,
-		 current_texture);
-#endif
-	glTexCoordPointer(size, type, stride, pointer);
+	vertex_count = count;
+	vertex_pitch = stride;
+	vertex_ptr = pointer;
 }
 
-const unsigned char *color_ptr;
-
-void
-qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+static void
+draw_colors_print(int count)
 {
-#ifdef QGL_LOG_GL_CALLS
-	color_ptr = pointer;
+	int i, size;
 
-	log_main("\tglColorPointer(%d, %s, %d, Colors_%d);\n",
-		 size, GLEnumString(type), stride, draw_count);
-#endif
-    glColorPointer(size, type, stride, pointer);
+	log_draws("unsigned int Draw_%d_Colors[] = {\n", draw_count);
+
+	if (color_pitch)
+		size = count * color_pitch / 4;
+	else
+		size = count * color_count / 4;
+
+	for (i = 0; i < size; i++) {
+		if (!(i % 4))
+			log_draws("\t0x%08X,", color_ptr[i]);
+		else if ((i % 4) == 3)
+			log_draws(" 0x%08X,\n", color_ptr[i]);
+		else
+			log_draws(" 0x%08X,", color_ptr[i]);
+	}
+
+	if ((i % 4))
+		log_draws("\n");
+	log_draws("};\n");
 }
 
-
-const float *vertices_ptr;
-int vertices_stride;
-int vertices_new;
-
-void
-qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+static void
+draw_coord0_print(int count)
 {
-#ifdef QGL_LOG_GL_CALLS
-	vertices_ptr = pointer;
-	vertices_stride = stride;
-	vertices_new = 1;
+	int i, size;
 
-	log_main("\tglVertexPointer(%d, %s, %d, Vertices_%d);\n",
-		 size, GLEnumString(type), stride, draw_count);
-#endif
-	glVertexPointer(size, type, stride, pointer);
+	log_draws("unsigned int Draw_%d_Coords_0[] = {\n", draw_count);
+
+	if (coord0_pitch)
+		size = count * coord0_pitch / 4;
+	else
+		size = count * coord0_count;
+
+	for (i = 0; i < size; i++) {
+		if (!(i % 4))
+			log_draws("\t0x%08X,", coord0_ptr[i]);
+		else if ((i % 4) == 3)
+			log_draws(" 0x%08X,\n", coord0_ptr[i]);
+		else
+			log_draws(" 0x%08X,", coord0_ptr[i]);
+	}
+
+	if ((i % 4))
+		log_draws("\n");
+	log_draws("};\n");
 }
 
-#ifdef QGL_LOG_GL_CALLS
-void
-data_print(int count)
+static void
+draw_coord1_print(int count)
+{
+	int i, size;
+
+	log_draws("unsigned int Draw_%d_Coords_1[] = {\n", draw_count);
+
+	if (coord1_pitch)
+		size = count * coord1_pitch / 4;
+	else
+		size = count * coord1_count;
+
+	for (i = 0; i < size; i++) {
+		if (!(i % 4))
+			log_draws("\t0x%08X,", coord1_ptr[i]);
+		else if ((i % 4) == 3)
+			log_draws(" 0x%08X,\n", coord1_ptr[i]);
+		else
+			log_draws(" 0x%08X,", coord1_ptr[i]);
+	}
+
+	if ((i % 4))
+		log_draws("\n");
+	log_draws("};\n");
+}
+
+static void
+draw_vertex_print(int count)
+{
+	int i, size;
+
+	log_draws("unsigned int Draw_%d_Vertices[] = {\n", draw_count);
+
+	if (vertex_pitch)
+		size = count * vertex_pitch / 4;
+	else
+		size = count * vertex_count;
+
+	for (i = 0; i < size; i++) {
+		if (!(i % 4))
+			log_draws("\t0x%08X,", vertex_ptr[i]);
+		else if ((i % 4) == 3)
+			log_draws(" 0x%08X,\n", vertex_ptr[i]);
+		else
+			log_draws(" 0x%08X,", vertex_ptr[i]);
+	}
+
+	if ((i % 4))
+		log_draws("\n");
+	log_draws("};\n");
+}
+
+static void
+draw_indices_print(const unsigned short *indices, int indices_count)
 {
 	int i;
 
-	if (color_ptr) {
-		const unsigned char *colors = color_ptr;
+	log_draws("unsigned short Draw_%d_Indices[] = {\n", draw_count);
 
-		log_draws("\tunsigned char Colors_%d[%d][4] = {\n",
-			draw_count, count);
-
-		for (i = 0; i < count; i++)
-			fprintf(log_draws_file,
-				"\t\t{0x%02X, 0x%02X, 0x%02X, 0x%02X},\n",
-				colors[4 * i], colors[4 * i + 1],
-				colors[4 * i + 2], colors[4 * i + 3]);
-
-		log_draws("\t};\n");
-	}
-
-	if (tex_coords_ptr[0]) {
-		const float *coords = tex_coords_ptr[0];
-
-		fprintf(log_draws_file,
-			"\tfloat TextureCoordinates_%d_%d[%d][2] = {\n",
-			draw_count, 0, count);
-		for (i = 0; i < count; i++)
-			log_draws("\t\t{%a, %a},\n",
-				coords[2 * i], coords[2 * i + 1]);
-		log_draws("\t};\n");
-	}
-
-	if (tex_coords_ptr[1]) {
-		const float *coords = tex_coords_ptr[1];
-
-		fprintf(log_draws_file,
-			"\tfloat TextureCoordinates_%d_%d[%d][2] = {\n",
-			draw_count, 1, count);
-		for (i = 0; i < count; i++)
-			log_draws("\t\t{%a, %a},\n",
-				coords[2 * i], coords[2 * i + 1]);
-		log_draws("\t};\n");
-	}
-
-
-	if (vertices_new) {
-		const float *vertices = vertices_ptr;
-		int i;
-
-		if (vertices_stride) {
-			log_draws("\tfloat Vertices_%d[%d][4] = {\n",
-				draw_count, count);
-			for (i = 0; i < count; i++)
-				log_draws("\t\t{%a, %a, %a, %a},\n",
-					vertices[4 * i], vertices[4 * i + 1],
-					vertices[4 * i + 2],
-					vertices[4 * i + 3]);
-		} else {
-			log_draws("\tfloat Vertices_%d[%d][2] = {\n",
-				draw_count, count);
-			for (i = 0; i < count; i++)
-				log_draws("\t\t{%a, %a},\n",
-					vertices[2 * i], vertices[2 * i + 1]);
-		}
-		log_draws("\t};\n");
-		vertices_new = 0;
-	}
-}
-#endif
-
-void
-qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
-{
-#ifdef QGL_LOG_GL_CALLS
-	const unsigned short *indices = ptr;
-	int i;
-
-	data_print(count);
-
-	log_draws("\tunsigned short Indices_%d[%d] = {\n",
-		draw_count, count);
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < indices_count; i++) {
 		if (!(i % 8))
-			log_draws("\t\t0x%04X,", indices[i]);
+			log_draws("\t0x%04X,", indices[i]);
 		else if ((i % 8) == 7)
 			log_draws(" 0x%04X,\n", indices[i]);
 		else
@@ -892,32 +1214,263 @@ qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
 
 	if ((i % 8))
 		log_draws("\n");
-	log_draws("\t};\n");
+	log_draws("};\n");
+}
 
-	log_main("\tglDrawElements(%s, %d, %s, Indices_%d);\n",
-		 GLEnumString(mode), count, GLEnumString(type), draw_count);
+static void
+draw_struct_print(int draw_mode, int count, int indices_count)
+{
+	log_draws("struct draw Draw_%d = {\n", draw_count);
+	log_draws("\t.id = %d,\n", draw_count);
+	log_draws("\t.mode = %d,\n", draw_mode);
+	log_draws("\t.count = %d,\n", count);
+
+	if (color_active) {
+		log_draws("\t.color_count = %d,\n", color_count);
+		log_draws("\t.color_pitch = %d,\n", color_pitch);
+		log_draws("\t.color_type = %s,\n", "GL_UNSIGNED_BYTE");
+		log_draws("\t.color_data = Draw_%d_Colors,\n", draw_count);
+	}
+
+	if (coord0_active && texture0_active) {
+		log_draws("\t.coord0_count = %d,\n", coord0_count);
+		log_draws("\t.coord0_pitch = %d,\n", coord0_pitch);
+		log_draws("\t.coord0_type = %s,\n", "GL_FLOAT");
+		log_draws("\t.coord0_data = Draw_%d_Coords_0,\n", draw_count);
+	}
+
+	if (coord1_active && texture1_active) {
+		log_draws("\t.coord1_count = %d,\n", coord1_count);
+		log_draws("\t.coord1_pitch = %d,\n", coord1_pitch);
+		log_draws("\t.coord1_type = %s,\n", "GL_FLOAT");
+		log_draws("\t.coord1_data = Draw_%d_Coords_1,\n", draw_count);
+	}
+
+	log_draws("\t.vertex_count = %d,\n", vertex_count);
+	log_draws("\t.vertex_pitch = %d,\n", vertex_pitch);
+	log_draws("\t.vertex_type = %s,\n", "GL_FLOAT");
+	log_draws("\t.vertex_data = Draw_%d_Vertices,\n", draw_count);
+
+	log_draws("\t.indices_count = %d,\n", indices_count);
+	log_draws("\t.indices = Draw_%d_Indices,\n", draw_count);
+
+	log_draws("};\n\n");
+
+	log_header("struct draw Draw_%d;\n", draw_count);
+}
+
+static void
+log_elements_draw(GLenum mode, GLsizei indices_count, GLenum type,
+		  const unsigned short *indices)
+{
+	int count = 0;
+	int i;
+
+	if (type != GL_UNSIGNED_SHORT) {
+		fprintf(stderr, "%s: Error: unsupported type.\n", __func__);
+		return;
+	}
+
+	for (i = 0; i < indices_count; i++)
+		if (indices[i] > count)
+			count = indices[i];
+	count++;
+
+	if (color_active)
+		draw_colors_print(count);
+
+	if (coord0_active && texture0_active)
+		draw_coord0_print(count);
+
+	if (coord1_active && texture1_active)
+		draw_coord1_print(count);
+
+	if (vertex_ptr)
+		draw_vertex_print(count);
+
+	draw_indices_print(indices, indices_count);
+
+	draw_struct_print(mode, count, indices_count);
+
+	if (texture0_active) {
+		if (texture1_active)
+			log_all("\tdraw_draw(&Draw_%d, &Texture_%d, "
+				"&Texture_%d);\n",
+				draw_count, texture0_id, texture1_id);
+		else
+			log_all("\tdraw_draw(&Draw_%d, &Texture_%d, NULL);\n",
+				draw_count, texture0_id);
+	} else
+		log_all("\tdraw_draw(&Draw_%d, NULL, NULL);\n", draw_count);
+
 	draw_count++;
+}
 
-	current_texture = 0;
-	tex_coords_ptr[0] = NULL;
-	tex_coords_ptr[1] = NULL;
-#endif
+#else
+#define log_texture_data(a, b, c, d, e)
+#define log_texture_parameter(a, b)
+#define log_texture_bind(a)
+#define log_texture_delete(a)
+
+#define log_enable(a)
+#define log_disable(a)
+#define log_clientstate_disable(a)
+#define log_clientstate_enable(a)
+#define log_texture_active(a)
+#define log_texture_client_active(a)
+#define log_color_pointer(a, b, c, d)
+#define log_texcoord_pointer(a, b, c, d)
+#define log_vertex_pointer(a, b, c, d)
+#define log_elements_draw(a, b, c, d)
+#endif /* QGL_LOG_GL_CALLS */
+
+#ifdef QGL_LOG_GL_CALLS
+static int matrix_projection;
+
+#define MATRIX_ORTHO_STATE_RESET 0
+#define MATRIX_ORTHO_STATE_PROJECTION 1
+#define MATRIX_ORTHO_STATE_PROJECTION_IDENTITY 2
+#define MATRIX_ORTHO_STATE_PROJECTION_ORTHO 3
+#define MATRIX_ORTHO_STATE_MODELVIEW 4
+static int matrix_ortho_state;
+
+
+void
+log_matrix_mode(GLenum mode)
+{
+	log_main("\tglMatrixMode(%s);\n", GLEnumString(mode));
+
+	if (mode == GL_PROJECTION) {
+		matrix_projection = 1;
+
+		if (matrix_ortho_state == MATRIX_ORTHO_STATE_RESET)
+			matrix_ortho_state = MATRIX_ORTHO_STATE_PROJECTION;
+		else {
+			log_limare("\t/* %s: Error: check gl code */\n",
+				   __func__);
+			matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+		}
+	} else {
+		matrix_projection = 0;
+
+		if (matrix_ortho_state == MATRIX_ORTHO_STATE_PROJECTION_ORTHO)
+			matrix_ortho_state = MATRIX_ORTHO_STATE_MODELVIEW;
+		else if (matrix_ortho_state != MATRIX_ORTHO_STATE_RESET) {
+			log_limare("\t/* %s: Error: check gl code */\n",
+				   __func__);
+			matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+		}
+	}
+}
+
+void
+log_matrix_load_identity(void)
+{
+	log_main("\tglLoadIdentity();\n");
+
+	if (matrix_projection) {
+		if (matrix_ortho_state == MATRIX_ORTHO_STATE_PROJECTION)
+			matrix_ortho_state =
+				MATRIX_ORTHO_STATE_PROJECTION_IDENTITY;
+		else {
+			log_limare("\t/* %s: Error: check gl code */\n",
+				   __func__);
+			matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+		}
+	} else {
+		if (matrix_ortho_state != MATRIX_ORTHO_STATE_MODELVIEW)
+			log_limare("\t/* %s: Error: check gl code */\n",
+				   __func__);
+		matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+	}
+}
+
+
+void
+log_matrix_load(const GLfloat *m)
+{
+	log_all("\tfloat Matrix_%d[16] = {\n", matrix_count);
+	log_all("\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
+	log_all("\t\t%a, %a, %a, %a,\n", m[4], m[5], m[6], m[7]);
+	log_all("\t\t%a, %a, %a, %a,\n", m[8], m[9], m[10], m[11]);
+	log_all("\t\t%a, %a, %a, %a,\n", m[12], m[13], m[14], m[15]);
+	log_all("\t};\n");
+
+	log_main("\tglLoadMatrixf(Matrix_%d);\n", matrix_count);
+
+	if (matrix_projection)
+		log_limare("\tmatrix_projection_set(Matrix_%d);\n",
+			   matrix_count);
+	else
+		log_limare("\tmatrix_modelview_set(Matrix_%d);\n",
+			   matrix_count);
+
+	matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+
+	matrix_count++;
+}
+
+void
+log_matrix_ortho(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
+		 GLfloat zNear, GLfloat zFar)
+{
+	log_main("\tglOrthof(%f, %f, %f, %f, %f, %f);\n",
+		 left, right, bottom, top, zNear, zFar);
+	log_limare("\tmatrix_orthographic_set(%f, %f, %f, %f,\n",
+		   left, right, bottom, top);
+	log_limare("\t\t\t\t%f, %f);\n", zNear, zFar);
+
+	if (matrix_projection &&
+	    (matrix_ortho_state == MATRIX_ORTHO_STATE_PROJECTION_IDENTITY))
+		matrix_ortho_state = MATRIX_ORTHO_STATE_PROJECTION_ORTHO;
+	else {
+		log_limare("\t/* %s: Error: check gl code */\n", __func__);
+		matrix_ortho_state = MATRIX_ORTHO_STATE_RESET;
+	}
+}
+
+#else
+#define log_matrix_mode(a)
+#define log_matrix_load_identity()
+#define log_matrix_load(a)
+#define log_matrix_ortho(a, b, c, d, e, f)
+#endif /* QGL_LOG_GL_CALLS */
+
+
+
+void
+qglTexCoordPointer(GLint size, GLenum type, GLsizei stride,
+		   const GLvoid *pointer)
+{
+	log_texcoord_pointer(size, type, stride, pointer);
+	glTexCoordPointer(size, type, stride, pointer);
+}
+
+void
+qglColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	log_color_pointer(size, type, stride, pointer);
+	glColorPointer(size, type, stride, pointer);
+}
+
+void
+qglVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer)
+{
+	log_vertex_pointer(size, type, stride, pointer);
+	glVertexPointer(size, type, stride, pointer);
+}
+
+void
+qglDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid *ptr)
+{
+	log_elements_draw(mode, count, type, ptr);
 	glDrawElements(mode, count, type, ptr);
 }
 
 void
 qglLoadMatrixf(const GLfloat *m)
 {
-#ifdef QGL_LOG_GL_CALLS
-	log_main("\tfloat Matrix_%d[16] = {\n", matrix_count);
-	log_main("\t\t%a, %a, %a, %a,\n", m[0], m[1], m[2], m[3]);
-	log_main("\t\t%a, %a, %a, %a,\n", m[4], m[5], m[6], m[7]);
-	log_main("\t\t%a, %a, %a, %a,\n", m[8], m[9], m[10], m[11]);
-	log_main("\t\t%a, %a, %a, %a,\n", m[12], m[13], m[14], m[15]);
-	log_main("\t};\n");
-	log_main("\tglLoadMatrixf(Matrix_%d);\n", matrix_count);
-	matrix_count++;
-#endif
+	log_matrix_load(m);
 	glLoadMatrixf(m);
 }
 
@@ -936,7 +1489,7 @@ qglTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 		 GLsizei width, GLsizei height, GLenum format, GLenum type,
 		 const GLvoid *pixels)
 {
-	log_main("\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n",
+	log_all("\tglTexSubImage2D(%s, %d, %d, %d, %d, %d, %s, %s, %p);\n",
 		 GLEnumString(target), level, xoffset, yoffset, width, height,
 		 GLEnumString(format), GLEnumString(type), pixels);
 	glTexSubImage2D(target, level, xoffset, yoffset, width, height, format,
@@ -960,20 +1513,14 @@ qglBindTexture(GLenum target, GLuint texture)
 void
 qglActiveTexture(GLenum texture)
 {
-#ifdef QGL_LOG_GL_CALLS
-	if (texture == GL_TEXTURE1)
-		current_texture = 1;
-	else
-		current_texture = 0;
-	log_main("\tglActiveTexture(%s);\n", GLEnumString(texture));
-#endif
+	log_texture_active(texture);
 	glActiveTexture(texture);
 }
 
 void
 qglDisableClientState(GLenum array)
 {
-	log_main("\tglDisableClientState(%s);\n", GLEnumString(array));
+	log_clientstate_disable(array);
 	glDisableClientState(array);
 }
 
@@ -981,13 +1528,16 @@ void
 qglAlphaFunc(GLenum func, GLclampf ref)
 {
 	log_main("\tglAlphaFunc(%s, %f);\n", GLEnumString(func), ref);
+	log_limare("\tlimare_alpha_func(state, %s, %f);\n",
+		   GLEnumString(func), ref);
+
 	glAlphaFunc(func, ref);
 }
 
 void
 qglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
 {
-	log_main("\tglClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
+	log_all("\tglClearColor(%f, %f, %f, %f);\n", red, green, blue, alpha);
 	glClearColor(red, green, blue, alpha);
 }
 
@@ -995,13 +1545,15 @@ void
 qglClearDepthf(GLclampf depth)
 {
 	log_main("\tglClearDepthf(%f);\n", depth);
+	log_limare("\tlimare_depth_clear_depth(state, %f);\n", depth);
+
 	glClearDepthf(depth);
 }
 
 void
 qglClipPlanef(GLenum plane, const GLfloat *equation)
 {
-	log_main("\tglClipPlanef(%s, %p);\n", GLEnumString(plane), equation);
+	log_all("\tglClipPlanef(%s, %p);\n", GLEnumString(plane), equation);
 	glClipPlanef(plane, equation);
 }
 
@@ -1009,6 +1561,7 @@ void
 qglColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)
 {
 	log_main("\tglColor4f(%f, %f, %f, %f);\n", red, green, blue, alpha);
+	log_limare("\t//glColor4f(%f, %f, %f, %f);\n", red, green, blue, alpha);
 	glColor4f(red, green, blue, alpha);
 }
 
@@ -1016,20 +1569,22 @@ void
 qglDepthRangef(GLclampf zNear, GLclampf zFar)
 {
 	log_main("\tglDepthRangef(%f, %f);\n", zNear, zFar);
+	log_limare("\tlimare_depth(state, %f, %f);\n", zNear, zFar);
+
 	glDepthRangef(zNear, zFar);
 }
 
 void
 qglLineWidth(GLfloat width)
 {
-	log_main("\tglLineWidth(%f);\n", width);
+	log_all("\tglLineWidth(%f);\n", width);
 	glLineWidth(width);
 }
 
 void
 qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 {
-	log_main("\tglMaterialf(%s, %s, %f);\n", GLEnumString(face),
+	log_all("\tglMaterialf(%s, %s, %f);\n", GLEnumString(face),
 		 GLEnumString(pname), param);
 	glMaterialf(face, pname, param);
 }
@@ -1037,7 +1592,7 @@ qglMaterialf(GLenum face, GLenum pname, GLfloat param)
 void
 qglMultiTexCoord4f(GLenum target, GLfloat s, GLfloat t, GLfloat r, GLfloat q)
 {
-	log_main("\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n",
+	log_all("\tglMultiTexCoord4f(%s, %f, %f, %f, %f);\n",
 		 GLEnumString(target), s, t, r, q);
 	glMultiTexCoord4f(target, s, t, r, q);
 }
@@ -1046,8 +1601,7 @@ void
 qglOrthof(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top,
 	  GLfloat zNear, GLfloat zFar)
 {
-	log_main("\tglOrthof(%f, %f, %f, %f, %f, %f);\n",
-		 left, right, bottom, top, zNear, zFar);
+	log_matrix_ortho(left, right, bottom, top, zNear, zFar);
 	glOrthof(left, right, bottom, top, zNear, zFar);
 }
 
@@ -1055,6 +1609,8 @@ void
 qglPolygonOffset(GLfloat factor, GLfloat units)
 {
 	log_main("\tglPolygonOffset(%f, %f);\n", factor, units);
+	log_limare("\tlimare_polygon_offset(state, %f, %f);\n", factor, units);
+
 	glPolygonOffset(factor, units);
 }
 
@@ -1063,20 +1619,23 @@ qglTexEnvf(GLenum target, GLenum pname, GLfloat param)
 {
 	log_main("\tglTexEnvf(%s, %s, %f);\n", GLEnumString(target),
 		 GLEnumString(pname), param);
+	log_limare("\t//glTexEnvf(%s, %s, %f);\n", GLEnumString(target),
+		   GLEnumString(pname), param);
+
 	glTexEnvf(target, pname, param);
 }
 
 void
 qglTranslatef(GLfloat x, GLfloat y, GLfloat z)
 {
-	log_main("\tglTranslatef(%f, %f, %f);\n", x, y, z);
+	log_all("\tglTranslatef(%f, %f, %f);\n", x, y, z);
 	glTranslatef(x, y, z);
 }
 
 void
 qglAlphaFuncx(GLenum func, GLclampx ref)
 {
-	log_main("\tglAlphaFuncx(%s, %d);\n", GLEnumString(func), ref);
+	log_all("\tglAlphaFuncx(%s, %d);\n", GLEnumString(func), ref);
 	glAlphaFuncx(func, ref);
 }
 
@@ -1085,6 +1644,8 @@ qglBlendFunc(GLenum sfactor, GLenum dfactor)
 {
 	log_main("\tglBlendFunc(%s, %s);\n", GLEnumString(sfactor),
 		 GLEnumString(dfactor));
+	log_limare("\tlimare_blend_func(state, %s, %s);\n",
+		   GLEnumString(sfactor), GLEnumString(dfactor));
 	glBlendFunc(sfactor, dfactor);
 }
 
@@ -1092,20 +1653,23 @@ void
 qglClear(GLbitfield mask)
 {
 	log_main("\tglClear(%s);\n", GLEnumString(mask));
+	if (mask == GL_DEPTH_BUFFER_BIT)
+		log_limare("\tlimare_depth_buffer_clear(state);\n");
+
 	glClear(mask);
 }
 
 void
 qglClearStencil(GLint s)
 {
-	log_main("\tglClearStencil(%d);\n", s);
+	log_all("\tglClearStencil(%d);\n", s);
 	glClearStencil(s);
 }
 
 void
 qglClientActiveTexture(GLenum texture)
 {
-	log_main("\tglClientActiveTexture(%s);\n", GLEnumString(texture));
+	log_texture_client_active(texture);
 	glClientActiveTexture(texture);
 }
 
@@ -1113,6 +1677,9 @@ void
 qglColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)
 {
 	log_main("\tglColorMask(%u, %u, %u, %u);\n", red, green, blue, alpha);
+	log_limare("\tlimare_color_mask(state, %u, %u, %u, %u);\n",
+		   red, green, blue, alpha);
+
 	glColorMask(red, green, blue, alpha);
 }
 
@@ -1120,6 +1687,8 @@ void
 qglCullFace(GLenum mode)
 {
 	log_main("\tglCullFace(%s);\n", GLEnumString(mode));
+	log_limare("\tlimare_cullface(state, %s);\n", GLEnumString(mode));
+
 	glCullFace(mode);
 }
 
@@ -1127,6 +1696,8 @@ void
 qglDepthFunc(GLenum func)
 {
 	log_main("\tglDepthFunc(%s);\n", GLEnumString(func));
+	log_limare("\tlimare_depth_func(state, %s);\n", GLEnumString(func));
+
 	glDepthFunc(func);
 }
 
@@ -1134,20 +1705,21 @@ void
 qglDepthMask(GLboolean flag)
 {
 	log_main("\tglDepthMask(%u);\n", flag);
+	log_limare("\tlimare_depth_mask(state, %u);\n", flag);
 	glDepthMask(flag);
 }
 
 void
 qglDisable(GLenum cap)
 {
-	log_main("\tglDisable(%s);\n", GLEnumString(cap));
+	log_disable(cap);
 	glDisable(cap);
 }
 
 void
 qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 {
-	log_main("\tglDrawArrays(%s, %d, %d);\n", GLEnumString(mode),
+	log_all("\tglDrawArrays(%s, %d, %d);\n", GLEnumString(mode),
 		 first, count);
 	glDrawArrays(mode, first, count);
 }
@@ -1155,14 +1727,14 @@ qglDrawArrays(GLenum mode, GLint first, GLsizei count)
 void
 qglEnable(GLenum cap)
 {
-	log_main("\tglEnable(%s);\n", GLEnumString(cap));
+	log_enable(cap);
 	glEnable(cap);
 }
 
 void
 qglEnableClientState(GLenum array)
 {
-	log_main("\tglEnableClientState(%s);\n", GLEnumString(array));
+	log_clientstate_enable(array);
 	glEnableClientState(array);
 }
 
@@ -1170,20 +1742,21 @@ void
 qglFinish(void)
 {
 	log_main("\tglFinish();\n");
+	log_limare("\t//glFinish();\n");
 	glFinish();
 }
 
 void
 qglFlush(void)
 {
-	log_main("\tglFlush();\n");
+	log_all("\tglFlush();\n");
 	glFlush();
 }
 
 void
 qglGetBooleanv(GLenum pname, GLboolean *params)
 {
-	log_main("\tglGetBooleanv(%s, %p);\n", GLEnumString(pname), params);
+	log_all("\tglGetBooleanv(%s, %p);\n", GLEnumString(pname), params);
 	glGetBooleanv(pname, params);
 }
 
@@ -1196,35 +1769,36 @@ qglGetError(void)
 void
 qglGetIntegerv(GLenum pname, GLint *params)
 {
-	log_main("\tglGetIntegerv(%s, %p);\n", GLEnumString(pname), params);
+	log_main("\t//glGetIntegerv(%s, %p);\n", GLEnumString(pname), params);
+	log_limare("\t//glGetIntegerv(%s, %p);\n", GLEnumString(pname), params);
 	glGetIntegerv(pname, params);
 }
 
 void
 qglLoadIdentity(void)
 {
-	log_main("\tglLoadIdentity();\n");
+	log_matrix_load_identity();
 	glLoadIdentity();
 }
 
 void
 qglMatrixMode(GLenum mode)
 {
-	log_main("\tglMatrixMode(%s);\n", GLEnumString(mode));
+	log_matrix_mode(mode);
 	glMatrixMode(mode);
 }
 
 void
 qglPopMatrix(void)
 {
-	log_main("\tglPopMatrix();\n");
+	log_all("\tglPopMatrix();\n");
 	glPopMatrix();
 }
 
 void
 qglPushMatrix(void)
 {
-	log_main("\tglPushMatrix();\n");
+	log_all("\tglPushMatrix();\n");
 	glPushMatrix();
 }
 
@@ -1232,7 +1806,7 @@ void
 qglReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
 	      GLenum type, GLvoid *pixels)
 {
-	log_main("\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width,
+	log_all("\tglReadPixels(%d, %d, %d, %d, %s, %s, %p);\n", x, y, width,
 		 height, GLEnumString(format), GLEnumString(type), pixels);
 	glReadPixels(x, y, width, height, format, type, pixels);
 }
@@ -1241,6 +1815,8 @@ void
 qglScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	log_main("\tglScissor(%d, %d, %d, %d);\n", x, y, width, height);
+	log_limare("\tlimare_scissor(state, %d, %d, %d, %d);\n",
+		   x, y, width, height);
 	glScissor(x, y, width, height);
 }
 
@@ -1248,13 +1824,15 @@ void
 qglShadeModel(GLenum mode)
 {
 	log_main("\tglShadeModel(%s);\n", GLEnumString(mode));
+	log_limare("\t//glShadeModel(%s);\n", GLEnumString(mode));
+
 	glShadeModel(mode);
 }
 
 void
 qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 {
-	log_main("\tglStencilFunc(%s, %d, %s);\n", GLEnumString(func), ref,
+	log_all("\tglStencilFunc(%s, %d, %s);\n", GLEnumString(func), ref,
 		 GLEnumString(mask));
 	glStencilFunc(func, ref, mask);
 }
@@ -1262,14 +1840,14 @@ qglStencilFunc(GLenum func, GLint ref, GLuint mask)
 void
 qglStencilMask(GLuint mask)
 {
-	log_main("\tglStencilMask(%s);\n", GLEnumString(mask));
+	log_all("\tglStencilMask(%s);\n", GLEnumString(mask));
 	glStencilMask(mask);
 }
 
 void
 qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 {
-	log_main("\tglStencilOp(%s, %s, %s);\n", GLEnumString(fail),
+	log_all("\tglStencilOp(%s, %s, %s);\n", GLEnumString(fail),
 		 GLEnumString(zfail), GLEnumString(zpass));
 	glStencilOp(fail, zfail, zpass);
 }
@@ -1277,7 +1855,7 @@ qglStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
 void
 qglTexEnvi(GLenum target, GLenum pname, GLint param)
 {
-	log_main("\tglTexEnvi(%s, %s, %d);\n", GLEnumString(target),
+	log_all("\tglTexEnvi(%s, %s, %d);\n", GLEnumString(target),
 		 GLEnumString(pname), param);
 	glTexEnvi(target, pname, param);
 }
@@ -1293,5 +1871,8 @@ void
 qglViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	log_main("\tglViewport(%d, %d, %d, %d);\n", x, y, width, height);
+	log_limare("\tlimare_viewport(state, %d, %d, %d, %d);\n",
+		   x, y, width, height);
+
 	glViewport(x, y, width, height);
 }
