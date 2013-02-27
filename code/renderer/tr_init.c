@@ -161,6 +161,18 @@ int		max_polys;
 cvar_t	*r_maxpolyverts;
 int		max_polyverts;
 
+#ifdef PANDORA
+void (APIENTRY * qglMultiTexCoord2fARB) (GLenum texture, GLfloat s, GLfloat t);
+void (APIENTRY * qglActiveTextureARB) (GLenum texture);
+void (APIENTRY * qglClientActiveTextureARB) (GLenum texture);
+void (APIENTRY * qglLockArraysEXT) (GLint, GLint);
+void (APIENTRY * qglUnlockArraysEXT) (void);
+
+#define qglClearDepth qglClearDepthf
+#define qglColor4f glColor4f
+
+#endif
+
 /*
 ** InitOpenGL
 **
@@ -768,8 +780,9 @@ void GL_SetDefaultState( void )
 	// make sure our GL state vector is set correctly
 	//
 	glState.glStateBits = GLS_DEPTHTEST_DISABLE | GLS_DEPTHMASK_TRUE;
-
+#ifndef PANDORA
 	qglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+#endif
 	qglDepthMask( GL_TRUE );
 	qglDisable( GL_DEPTH_TEST );
 	qglEnable( GL_SCISSOR_TEST );

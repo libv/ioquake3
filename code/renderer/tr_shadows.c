@@ -124,12 +124,23 @@ void R_RenderShadowEdges( void ) {
 			// if it doesn't share the edge with another front facing
 			// triangle, it is a sil edge
 			if ( hit[ 1 ] == 0 ) {
+#ifdef PANDORA
+				glIndex_t indicies[4];
+				indicies[0] = i;
+				indicies[1] = i + tess.numVertexes;
+				indicies[2] = i2;
+				indicies[3] = i2 + tess.numVertexes;
+
+				qglVertexPointer(3, GL_FLOAT, 16, tess.xyz);
+				qglDrawElements(GL_TRIANGLE_STRIP, 4, GL_INDEX_TYPE, indicies);
+#else
 				qglBegin( GL_TRIANGLE_STRIP );
 				qglVertex3fv( tess.xyz[ i ] );
 				qglVertex3fv( tess.xyz[ i + tess.numVertexes ] );
 				qglVertex3fv( tess.xyz[ i2 ] );
 				qglVertex3fv( tess.xyz[ i2 + tess.numVertexes ] );
 				qglEnd();
+#endif
 				c_edges++;
 			} else {
 				c_rejected++;
@@ -213,8 +224,11 @@ void RB_ShadowTessEnd( void ) {
 	GL_Bind( tr.whiteImage );
 	qglEnable( GL_CULL_FACE );
 	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
+#ifdef PANDORA
+	glColor4f( 0.2f, 0.2f, 0.2f, 1.0f );
+#else
 	qglColor3f( 0.2f, 0.2f, 0.2f );
-
+#endif
 	// don't write to the color buffer
 	qglGetBooleanv(GL_COLOR_WRITEMASK, rgba);
 	qglColorMask( GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE );
@@ -262,6 +276,15 @@ overlap and double darken.
 =================
 */
 void RB_ShadowFinish( void ) {
+#ifdef PANDORA
+	vec3_t quad[4] = {
+		{-100.0f,  100.0f, -10.0f},
+		{ 100.0f,  100.0f, -10.0f},
+		{ 100.0f, -100.0f, -10.0f},
+		{-100.0f, -100.0f, -10.0f}
+	};
+	glIndex_t indicies[6] = { 0, 1, 2, 0, 3, 2 };
+#endif
 	if ( r_shadows->integer != 2 ) {
 		return;
 	}
@@ -277,13 +300,20 @@ void RB_ShadowFinish( void ) {
 	GL_Bind( tr.whiteImage );
 
     qglLoadIdentity ();
-
+#ifdef PANDORA
+	glColor4f( 0.6f, 0.6f, 0.6f, 1.0f );
+#else
 	qglColor3f( 0.6f, 0.6f, 0.6f );
+#endif
 	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO );
 
 //	qglColor3f( 1, 0, 0 );
 //	GL_State( GLS_DEPTHMASK_TRUE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
-
+#ifdef PANDORA
+	qglVertexPointer(3, GL_FLOAT, 0, quad);
+	qglDrawElements(GL_TRIANGLE_STRIP, 6, GL_INDEX_TYPE, indicies);
+	glColor4f(1,1,1,1);
+#else
 	qglBegin( GL_QUADS );
 	qglVertex3f( -100, 100, -10 );
 	qglVertex3f( 100, 100, -10 );
@@ -292,6 +322,7 @@ void RB_ShadowFinish( void ) {
 	qglEnd ();
 
 	qglColor4f(1,1,1,1);
+#endif
 	qglDisable( GL_STENCIL_TEST );
 }
 

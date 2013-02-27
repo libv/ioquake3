@@ -28,6 +28,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 static float s_cloudTexCoords[6][SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
 static float s_cloudTexP[6][SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1];
 
+#ifdef PANDORA
+#define qglDepthRange qglDepthRangef
+#endif
+
 /*
 ===================================================================================
 
@@ -364,24 +368,45 @@ static float	s_skyTexCoords[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
 static void DrawSkySide( struct image_s *image, const int mins[2], const int maxs[2] )
 {
 	int s, t;
+#ifdef PANDORA
+	int size, i = 0;
+	glIndex_t *indicies;
+	size = (maxs[1] - mins[1]) * (maxs[0] - mins[0] + 1);
+	indicies = ri.Hunk_AllocateTempMemory(sizeof(glIndex_t) * size);
+#endif
 
 	GL_Bind( image );
 
 	for ( t = mins[1]+HALF_SKY_SUBDIVISIONS; t < maxs[1]+HALF_SKY_SUBDIVISIONS; t++ )
 	{
+#ifndef PANDORA
 		qglBegin( GL_TRIANGLE_STRIP );
-
+#endif
 		for ( s = mins[0]+HALF_SKY_SUBDIVISIONS; s <= maxs[0]+HALF_SKY_SUBDIVISIONS; s++ )
 		{
+#ifdef PANDORA
+			indicies[i++] = t * (SKY_SUBDIVISIONS + 1) + s;
+			indicies[i++] = (t + 1) * (SKY_SUBDIVISIONS + 1) + s;
+#else
 			qglTexCoord2fv( s_skyTexCoords[t][s] );
 			qglVertex3fv( s_skyPoints[t][s] );
 
 			qglTexCoord2fv( s_skyTexCoords[t+1][s] );
 			qglVertex3fv( s_skyPoints[t+1][s] );
+#endif
 		}
-
+#ifndef PANDORA
 		qglEnd();
+#endif
 	}
+#ifdef PANDORA
+	qglDisableClientState(GL_COLOR_ARRAY);
+	qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	qglTexCoordPointer(2, GL_FLOAT, 0, s_skyTexCoords);
+	qglVertexPointer(3, GL_FLOAT, 0, s_skyPoints);
+	qglDrawElements(GL_TRIANGLE_STRIP, i, GL_INDEX_TYPE, indicies);
+	Hunk_FreeTempMemory(indicies);
+#endif
 }
 
 static void DrawSkyBox( shader_t *shader )
@@ -816,8 +841,11 @@ void RB_StageIteratorSky( void ) {
 
 	// draw the outer skybox
 	if ( tess.shader->sky.outerbox[0] && tess.shader->sky.outerbox[0] != tr.defaultImage ) {
+#ifdef PANDORA
+		glColor4f( tr.identityLight, tr.identityLight, tr.identityLight, 1.0f );
+#else
 		qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
-		
+#endif		
 		qglPushMatrix ();
 		GL_State( 0 );
 		qglTranslatef (backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2]);

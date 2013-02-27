@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
   This file deals with applying shaders to surface data in the tess struct.
 */
-
+#ifndef PANDORA
 /*
 ================
 R_ArrayElementDiscrete
@@ -198,7 +198,12 @@ static void R_DrawElements( int numIndexes, const glIndex_t *indexes ) {
 
 	// anything else will cause no drawing
 }
-
+#else
+static void R_DrawElements( int numIndexes, const glIndex_t* indexes )
+{
+	qglDrawElements(GL_TRIANGLES, numIndexes, GL_INDEX_TYPE, indexes);
+}
+#endif
 
 /*
 =============================================================
@@ -253,10 +258,17 @@ Draws triangle outlines for debugging
 */
 static void DrawTris (shaderCommands_t *input) {
 	GL_Bind( tr.whiteImage );
+#ifdef PANDORA
+	glColor4f (1,1,1,1);
+#else
 	qglColor3f (1,1,1);
-
+#endif
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
+#ifdef PANDORA
+	qglDepthRangef( 0, 0 );
+#else
 	qglDepthRange( 0, 0 );
+#endif
 
 	qglDisableClientState (GL_COLOR_ARRAY);
 	qglDisableClientState (GL_TEXTURE_COORD_ARRAY);
@@ -274,7 +286,11 @@ static void DrawTris (shaderCommands_t *input) {
 		qglUnlockArraysEXT();
 		GLimp_LogComment( "glUnlockArraysEXT\n" );
 	}
+#ifdef PANDORA
+	qglDepthRangef( 0, 1 );
+#else
 	qglDepthRange( 0, 1 );
+#endif
 }
 
 
@@ -288,12 +304,34 @@ Draws vertex normals for debugging
 static void DrawNormals (shaderCommands_t *input) {
 	int		i;
 	vec3_t	temp;
+#ifdef PANDORA
+	vec3_t verts[2 * SHADER_MAX_VERTEXES];
+	glIndex_t indicies[2 * SHADER_MAX_VERTEXES];
 
+	for (i = 0; i < input->numVertexes; i++) {
+		VectorCopy(input->xyz[i], verts[i * 2]);
+		VectorMA(input->xyz[i], 2, input->normal[i], temp);
+		VectorCopy(temp, verts[(i * 2) + 1]);
+		indicies[(i * 2)] = i * 2;
+		indicies[(i * 2) + 1] = (i * 2) + 1;
+	}
+#endif
 	GL_Bind( tr.whiteImage );
+#ifdef PANDORA
+	glColor4f (1,1,1,1);
+	qglDepthRangef( 0, 0 );	// never occluded
+#else
 	qglColor3f (1,1,1);
 	qglDepthRange( 0, 0 );	// never occluded
+#endif
 	GL_State( GLS_POLYMODE_LINE | GLS_DEPTHMASK_TRUE );
 
+#ifdef PANDORA
+	qglVertexPointer(3, GL_FLOAT, 0, verts);
+	qglDrawElements(GL_LINES, i, GL_INDEX_TYPE, indicies);
+
+	qglDepthRangef( 0, 1 );
+#else
 	qglBegin (GL_LINES);
 	for (i = 0 ; i < input->numVertexes ; i++) {
 		qglVertex3fv (input->xyz[i]);
@@ -301,8 +339,8 @@ static void DrawNormals (shaderCommands_t *input) {
 		qglVertex3fv (temp);
 	}
 	qglEnd ();
-
 	qglDepthRange( 0, 1 );
+#endif
 }
 
 /*
@@ -351,13 +389,13 @@ static void DrawMultitextured( shaderCommands_t *input, int stage ) {
 	pStage = tess.xstages[stage];
 
 	GL_State( pStage->stateBits );
-
+#ifndef PANDORA
 	// this is an ugly hack to work around a GeForce driver
 	// bug with multitexture and clip planes
 	if ( backEnd.viewParms.isPortal ) {
 		qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	}
-
+#endif
 	//
 	// base
 	//
@@ -421,7 +459,11 @@ static void ProjectDlightTexture_altivec( void ) {
 	byte	clipBits[SHADER_MAX_VERTEXES];
 	float	texCoordsArray[SHADER_MAX_VERTEXES][2];
 	byte	colorArray[SHADER_MAX_VERTEXES][4];
+#ifdef PANDORA
+	glIndex_t	hitIndexes[SHADER_MAX_INDEXES];
+#else
 	unsigned	hitIndexes[SHADER_MAX_INDEXES];
+#endif
 	int		numIndexes;
 	float	scale;
 	float	radius;
@@ -535,8 +577,11 @@ static void ProjectDlightTexture_altivec( void ) {
 		// build a list of triangles that need light
 		numIndexes = 0;
 		for ( i = 0 ; i < tess.numIndexes ; i += 3 ) {
+#ifdef PANDORA
+			glIndex_t	a, b, c;
+#else
 			int		a, b, c;
-
+#endif
 			a = tess.indexes[i];
 			b = tess.indexes[i+1];
 			c = tess.indexes[i+2];
@@ -584,7 +629,11 @@ static void ProjectDlightTexture_scalar( void ) {
 	byte	clipBits[SHADER_MAX_VERTEXES];
 	float	texCoordsArray[SHADER_MAX_VERTEXES][2];
 	byte	colorArray[SHADER_MAX_VERTEXES][4];
+#ifdef PANDORA
+	glIndex_t	hitIndexes[SHADER_MAX_INDEXES];
+#else
 	unsigned	hitIndexes[SHADER_MAX_INDEXES];
+#endif
 	int		numIndexes;
 	float	scale;
 	float	radius;
@@ -680,7 +729,11 @@ static void ProjectDlightTexture_scalar( void ) {
 		// build a list of triangles that need light
 		numIndexes = 0;
 		for ( i = 0 ; i < tess.numIndexes ; i += 3 ) {
+#ifdef PANDORA
+			glIndex_t	a, b, c;
+#else
 			int		a, b, c;
+#endif
 
 			a = tess.indexes[i];
 			b = tess.indexes[i+1];

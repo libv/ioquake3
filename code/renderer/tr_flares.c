@@ -253,6 +253,8 @@ FLARE BACK END
 ===============================================================================
 */
 
+#ifndef PANDORA
+
 /*
 ==================
 RB_TestFlare
@@ -526,4 +528,11 @@ void RB_RenderFlares (void) {
 	qglMatrixMode( GL_MODELVIEW );
 	qglPopMatrix();
 }
+
+#else
+void RB_RenderFlares(void)
+{
+}
+#endif
+
 

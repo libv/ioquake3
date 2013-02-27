@@ -164,6 +164,7 @@ SDIR=$(MOUNT_DIR)/server
 RDIR=$(MOUNT_DIR)/renderer
 CMDIR=$(MOUNT_DIR)/qcommon
 SDLDIR=$(MOUNT_DIR)/sdl
+PNDDIR=$(MOUNT_DIR)/pnd
 ASMDIR=$(MOUNT_DIR)/asm
 SYSDIR=$(MOUNT_DIR)/sys
 GDIR=$(MOUNT_DIR)/game
@@ -238,6 +239,7 @@ LIB=lib
 
 INSTALL=install
 MKDIR=mkdir
+PERL=perl
 
 ifeq ($(PLATFORM),linux)
 
@@ -310,6 +312,15 @@ ifeq ($(PLATFORM),linux)
     OPTIMIZEVM += -mtune=ultrasparc3 -mv8plus
     HAVE_VM_COMPILED=true
   endif
+  ifeq ($(ARCH),arm)
+    BASE_CFLAGS += -DPANDORA -I$(PNDSDK)/usr/include
+    OPTIMIZE += -mfpu=neon
+	# -O3 -march=armv7-a -mcpu=cortex-a8 -mtune=cortex-a8 -mfloat-abi=softfp \
+	# -mfpu=neon -ftree-vectorize -ffast-math -fomit-frame-pointer -fno-strict-aliasing -fsingle-precision-constant
+    SDL_CFLAGS=`$(PNDSDK)/usr/bin/sdl-config --cflags`
+    SDL_LIBS=`$(PNDSDK)/usr/bin/sdl-config --libs`
+    BASE_CFLAGS += -I$(PNDSDK)/usr/include/EGL/ -I$(PNDSDK)/usr/include/GLES/
+  endif
   endif
   endif
 
@@ -325,6 +336,10 @@ ifeq ($(PLATFORM),linux)
   LIBS=-ldl -lm
 
   CLIENT_LIBS=$(SDL_LIBS) -lGL
+
+  ifeq ($(ARCH),arm)
+    CLIENT_LIBS = $(SDL_LIBS) -lGLES_CM -lX11
+  endif
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -926,6 +941,11 @@ $(echo_cmd) "CC $<"
 $(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
 endef
 
+define DO_PERL
+$(echo_cmd) "PERL $@"
+$(Q)$(PERL) $< > $@
+endef
+
 define DO_SMP_CC
 $(echo_cmd) "SMP_CC $<"
 $(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -DSMP -o $@ -c $<
@@ -1443,13 +1463,13 @@ Q3OBJ = \
   $(B)/client/tr_surface.o \
   $(B)/client/tr_world.o \
   \
-  $(B)/client/sdl_gamma.o \
   $(B)/client/sdl_input.o \
   $(B)/client/sdl_snd.o \
   \
   $(B)/client/con_passive.o \
   $(B)/client/con_log.o \
   $(B)/client/sys_main.o
+#  $(B)/client/sdl_gamma.o \
 
 ifeq ($(ARCH),i386)
   Q3OBJ += \
@@ -1566,10 +1586,12 @@ ifeq ($(USE_MUMBLE),1)
 endif
 
 Q3POBJ += \
-  $(B)/client/sdl_glimp.o
+   $(B)/client/egl_glimp.o
+#  $(B)/client/sdl_glimp.o
 
 Q3POBJ_SMP += \
-  $(B)/clientsmp/sdl_glimp.o
+   $(Q3POBJ)
+#  $(B)/clientsmp/sdl_glimp.o
 
 $(B)/ioquake3$(FULLBINEXT): $(Q3OBJ) $(Q3POBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
@@ -2039,7 +2061,7 @@ $(B)/client/%.o: $(CMDIR)/%.c
 $(B)/client/%.o: $(BLIBDIR)/%.c
 	$(DO_BOT_CC)
 
-$(B)/client/%.o: $(JPDIR)/%.c
+$(B)/client/%.o: $(JPDIR)/%.c $(PNDDIR)/qgl.h
 	$(DO_CC)
 
 $(B)/client/%.o: $(SPEEXDIR)/%.c
@@ -2048,13 +2070,19 @@ $(B)/client/%.o: $(SPEEXDIR)/%.c
 $(B)/client/%.o: $(ZDIR)/%.c
 	$(DO_CC)
 
-$(B)/client/%.o: $(RDIR)/%.c
+$(B)/client/%.o: $(RDIR)/%.c $(PNDDIR)/qgl.h
 	$(DO_CC)
 
 $(B)/client/%.o: $(SDLDIR)/%.c
 	$(DO_CC)
 
 $(B)/clientsmp/%.o: $(SDLDIR)/%.c
+	$(DO_SMP_CC)
+
+$(B)/client/%.o: $(PNDDIR)/%.c
+	$(DO_CC)
+
+$(B)/clientsmp/%.o: $(PNDDIR)/%.c
 	$(DO_SMP_CC)
 
 $(B)/client/%.o: $(SYSDIR)/%.c
@@ -2101,6 +2129,11 @@ ifeq ($(USE_SVN),1)
   $(B)/ded/common.o : .svn/entries
 endif
 
+$(PNDDIR)/qgl.h: $(PNDDIR)/GenerateQGL.pl
+	$(DO_PERL)
+
+$(B)/client/%.o: $(PNDDIR)/%.c
+	$(DO_CC)
 
 #############################################################################
 ## GAME MODULE RULES

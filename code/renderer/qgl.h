@@ -26,11 +26,32 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef __QGL_H__
 #define __QGL_H__
 
+#ifndef PANDORA
+
 #ifdef USE_LOCAL_HEADERS
 #	include "SDL_opengl.h"
 #else
 #	include <SDL_opengl.h>
 #endif
+
+#endif // PANDORA
+
+#ifdef PANDORA
+
+#include <GLES/egl.h>
+#include <GLES/gl.h>
+
+#include "../pnd/egl_glimp.h"
+#include "../pnd/qgl.h"
+
+#define GL_TEXTURE0_ARB 0x84C0
+#define GL_TEXTURE1_ARB 0x84C1
+#define GL_TEXTURE2_ARB 0x84C2
+#define GL_TEXTURE3_ARB 0x84C3
+#define GL_RGB_S3TC 0x83A0
+#define GL_RGB4_S3TC 0x83A1
+
+#endif // PANDORA
 
 extern void (APIENTRYP qglActiveTextureARB) (GLenum texture);
 extern void (APIENTRYP qglClientActiveTextureARB) (GLenum texture);
@@ -39,6 +60,7 @@ extern void (APIENTRYP qglMultiTexCoord2fARB) (GLenum target, GLfloat s, GLfloat
 extern void (APIENTRYP qglLockArraysEXT) (GLint first, GLsizei count);
 extern void (APIENTRYP qglUnlockArraysEXT) (void);
 
+#ifndef PANDORA
 
 //===========================================================================
 
@@ -377,4 +399,5 @@ extern void (APIENTRYP qglUnlockArraysEXT) (void);
 #define qglVertexPointer glVertexPointer
 #define qglViewport glViewport
 
+#endif
 #endif
