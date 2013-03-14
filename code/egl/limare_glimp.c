@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 Luc Verhaegen <libv@skynet.be>
+ * Copyright 2011-2013 Luc Verhaegen <libv@skynet.be>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -47,6 +47,8 @@
 
 #include "glenumstring.c"
 
+#include "limare_shaders.c"
+
 struct limare_state *state;
 static int frame_count;
 static int draw_count;
@@ -91,6 +93,7 @@ unsigned int program_current;
 int
 program_single_texture_load(void)
 {
+#ifndef LIMARE_SHADERS_C
 	static const char* vertex_source =
 		"uniform mat4 uMatrix;\n"
 		"\n"
@@ -107,6 +110,7 @@ program_single_texture_load(void)
 		"    vColor = aColor;\n"
 		"    vTexCoord0 = aTexCoord0;\n"
 		"}\n";
+#endif /* LIMARE_SHADERS_C */
 
 	static const char* fragment_source =
 		"precision mediump float;\n"
@@ -124,8 +128,18 @@ program_single_texture_load(void)
 
 	program_single_texture = limare_program_new(state);
 
+#ifndef LIMARE_SHADERS_C
 	vertex_shader_attach(state, program_single_texture,
 			     vertex_source);
+#else
+	ret = vertex_shader_attach_mbs_stream(state, program_single_texture,
+					      mbs_single_texture_vertex,
+					      sizeof(mbs_single_texture_vertex)
+					      );
+	if (ret)
+		return ret;
+#endif /* LIMARE_SHADERS_C */
+
 	fragment_shader_attach(state, program_single_texture,
 			       fragment_source);
 
@@ -139,6 +153,7 @@ program_single_texture_load(void)
 int
 program_dual_texture_load(void)
 {
+#ifndef LIMARE_SHADERS_C
 	static const char* vertex_source =
 		"uniform mat4 uMatrix;\n"
 		"\n"
@@ -158,6 +173,7 @@ program_dual_texture_load(void)
 		"    vTexCoord0 = aTexCoord0;\n"
 		"    vTexCoord1 = aTexCoord1;\n"
 		"}\n";
+#endif /* LIMARE_SHADERS_C */
 
 	static const char* fragment_source =
 		"precision mediump float;\n"
@@ -180,8 +196,18 @@ program_dual_texture_load(void)
 
 	program_dual_texture = limare_program_new(state);
 
+#ifndef LIMARE_SHADERS_C
 	vertex_shader_attach(state, program_dual_texture,
 			     vertex_source);
+#else
+	ret = vertex_shader_attach_mbs_stream(state, program_dual_texture,
+					      mbs_dual_texture_vertex,
+					      sizeof(mbs_dual_texture_vertex)
+					      );
+	if (ret)
+		return ret;
+#endif /* LIMARE_SHADERS_C */
+
 	fragment_shader_attach(state, program_dual_texture,
 			       fragment_source);
 
