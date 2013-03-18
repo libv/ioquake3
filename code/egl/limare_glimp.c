@@ -47,7 +47,11 @@
 
 #include "glenumstring.c"
 
-#include "limare_shaders.c"
+/* from limare_shaders.c */
+extern int
+program_single_texture_load(struct limare_state *state, unsigned int *program);
+extern int
+program_dual_texture_load(struct limare_state *state, unsigned int *program);
 
 struct limare_state *state;
 static int frame_count;
@@ -89,134 +93,6 @@ fbdev_size(int *width, int *height)
 unsigned int program_single_texture;
 unsigned int program_dual_texture;
 unsigned int program_current;
-
-int
-program_single_texture_load(void)
-{
-#ifndef LIMARE_SHADERS_C
-	static const char* vertex_source =
-		"uniform mat4 uMatrix;\n"
-		"\n"
-		"attribute vec4 aPosition;\n"
-		"attribute vec4 aColor;\n"
-		"attribute vec2 aTexCoord0;\n"
-		"\n"
-		"varying vec4 vColor;\n"
-		"varying vec2 vTexCoord0;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"    gl_Position = uMatrix * aPosition;\n"
-		"    vColor = aColor;\n"
-		"    vTexCoord0 = aTexCoord0;\n"
-		"}\n";
-#endif /* LIMARE_SHADERS_C */
-
-	static const char* fragment_source =
-		"precision mediump float;\n"
-		"\n"
-		"varying vec4 vColor;\n"
-		"varying vec2 vTexCoord0;\n"
-		"\n"
-		"uniform sampler2D uTexture0;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"    gl_FragColor = clamp(vColor * texture2D(uTexture0, vTexCoord0), 0.0, 1.0);\n"
-		"}\n";
-	int ret;
-
-	program_single_texture = limare_program_new(state);
-
-#ifndef LIMARE_SHADERS_C
-	vertex_shader_attach(state, program_single_texture,
-			     vertex_source);
-#else
-	ret = vertex_shader_attach_mbs_stream(state, program_single_texture,
-					      mbs_single_texture_vertex,
-					      sizeof(mbs_single_texture_vertex)
-					      );
-	if (ret)
-		return ret;
-#endif /* LIMARE_SHADERS_C */
-
-	fragment_shader_attach(state, program_single_texture,
-			       fragment_source);
-
-	ret = limare_link(state);
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-int
-program_dual_texture_load(void)
-{
-#ifndef LIMARE_SHADERS_C
-	static const char* vertex_source =
-		"uniform mat4 uMatrix;\n"
-		"\n"
-		"attribute vec4 aPosition;\n"
-		"attribute vec4 aColor;\n"
-		"attribute vec2 aTexCoord0;\n"
-		"attribute vec2 aTexCoord1;\n"
-		"\n"
-		"varying vec4 vColor;\n"
-		"varying vec2 vTexCoord0;\n"
-		"varying vec2 vTexCoord1;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"    gl_Position = uMatrix * aPosition;\n"
-		"    vColor = aColor;\n"
-		"    vTexCoord0 = aTexCoord0;\n"
-		"    vTexCoord1 = aTexCoord1;\n"
-		"}\n";
-#endif /* LIMARE_SHADERS_C */
-
-	static const char* fragment_source =
-		"precision mediump float;\n"
-		"\n"
-		"varying vec4 vColor;\n"
-		"varying vec2 vTexCoord0;\n"
-		"varying vec2 vTexCoord1;\n"
-		"\n"
-		"uniform sampler2D uTexture0;\n"
-		"uniform sampler2D uTexture1;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"    gl_FragColor = clamp(vColor * "
-		"texture2D(uTexture0, vTexCoord0) *"
-		"texture2D(uTexture1, vTexCoord1),"
-		" 0.0, 1.0);\n"
-		"}\n";
-	int ret;
-
-	program_dual_texture = limare_program_new(state);
-
-#ifndef LIMARE_SHADERS_C
-	vertex_shader_attach(state, program_dual_texture,
-			     vertex_source);
-#else
-	ret = vertex_shader_attach_mbs_stream(state, program_dual_texture,
-					      mbs_dual_texture_vertex,
-					      sizeof(mbs_dual_texture_vertex)
-					      );
-	if (ret)
-		return ret;
-#endif /* LIMARE_SHADERS_C */
-
-	fragment_shader_attach(state, program_dual_texture,
-			       fragment_source);
-
-	ret = limare_link(state);
-	if (ret)
-		return ret;
-
-	return 0;
-}
 
 /*
  *
@@ -413,11 +289,11 @@ GLimp_Init(void)
 	glConfig.driverType = GLDRV_ICD;
 	glConfig.hardwareType = GLHW_GENERIC;
 
-	ret = program_single_texture_load();
+	ret = program_single_texture_load(state, &program_single_texture);
 	if (ret)
 		return;
 
-	ret = program_dual_texture_load();
+	ret = program_dual_texture_load(state, &program_dual_texture);
 	if (ret)
 		return;
 

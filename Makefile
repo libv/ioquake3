@@ -1498,6 +1498,7 @@ endif
 
 ifeq ($(USE_LIMARE),1)
 	Q3POBJ += $(B)/client/limare_glimp.o
+	Q3POBJ += $(B)/client/limare_shaders.o
 else
 ifeq ($(USE_GLES2),1)
 	Q3POBJ += $(B)/client/gles2_glimp.o

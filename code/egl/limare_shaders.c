@@ -1,5 +1,6 @@
 /*
  * Copyright 2013 Connor Abbott <cwabbott0@gmail.com>
+ * Copyright 2011-2013 Luc Verhaegen <libv@skynet.be>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -23,13 +24,25 @@
  */
 
 /*
- * This files contain the binary shaders generated with Connors open-gpu-tools.
- * Repo: https://gitorious.org/~cwabbott/open-gpu-tools/cwabbotts-open-gpu-tools
- *
+ * Set this to 0 if you want to use the binary compiler.
  */
+#define OGT_MBS_USE 1
 
-#ifndef LIMARE_SHADERS_C
-#define LIMARE_SHADERS_C 1
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <limare.h>
+
+#if OGT_MBS_USE
+/*
+ * Below are MBS files, generated with Connor's Open GPU Tools:
+ * https://gitorious.org/~cwabbott/open-gpu-tools/cwabbotts-open-gpu-tools
+ *
+ * They replace the dependency on the mali binary compiler, they are freely
+ * distributable under the MIT license, and they allow for running Q3A without
+ * depending on any binary.
+ */
 
 /*
  *
@@ -53,9 +66,9 @@ varying vec2 vTexCoord0;
 
 void main()
 {
-    gl_Position = uMatrix * aPosition;
-    vColor = aColor;
-    vTexCoord0 = aTexCoord0;
+	gl_Position = uMatrix * aPosition;
+	vColor = aColor;
+	vTexCoord0 = aTexCoord0;
 }
 
 #endif /* ESSL_CODE */
@@ -163,7 +176,7 @@ block_1:
  * loading faster and pretty foolproof.
  */
 static unsigned int
-mbs_single_texture_vertex[] = {
+mbs_vertex_single_texture[] = {
 	0x3153424d, 0x00000340, 0x52455643, 0x00000338, /* |MBS1@...CVER8...| */
 	0x00000002, 0x534e4946, 0x0000000c, 0x00000000, /* |....FINS........| */
 	0x00000010, 0x0000000f, 0x494e5553, 0x000000b8, /* |........SUNI....| */
@@ -243,10 +256,10 @@ varying vec2 vTexCoord1;
 
 void main()
 {
-    gl_Position = uMatrix * aPosition;
-    vColor = aColor;
-    vTexCoord0 = aTexCoord0;
-    vTexCoord1 = aTexCoord1;
+	gl_Position = uMatrix * aPosition;
+	vColor = aColor;
+	vTexCoord0 = aTexCoord0;
+	vTexCoord1 = aTexCoord1;
 }
 
 #endif /* ESSL_CODE */
@@ -352,7 +365,7 @@ block_1:
  * loading faster and pretty foolproof.
  */
 static unsigned int
-mbs_dual_texture_vertex[] = {
+mbs_vertex_dual_texture[] = {
 	0x3153424d, 0x0000039c, 0x52455643, 0x00000394, /* |MBS1....CVER....| */
 	0x00000002, 0x534e4946, 0x0000000c, 0x00000000, /* |....FINS........| */
 	0x00000010, 0x0000000e, 0x494e5553, 0x000000b8, /* |........SUNI....| */
@@ -414,4 +427,316 @@ mbs_dual_texture_vertex[] = {
 	0x000ad508,					/* |....| */
 };
 
-#endif /* LIMARE_SHADERS */
+/*
+ *
+ * Fragment shader for a single texture and a color.
+ *
+ */
+
+/*
+ * ESSL code: the same shader as used directly.
+ */
+#ifdef ESSL_CODE
+
+precision mediump float;
+
+varying vec4 vColor;
+varying vec2 vTexCoord0;
+
+uniform sampler2D uTexture0;
+
+void main()
+{
+	gl_FragColor =
+		clamp(vColor * texture2D(uTexture0, vTexCoord0), 0.0, 1.0);
+}
+
+#endif /* ESSL_CODE */
+
+/*
+ * IR: written directly.
+ */
+#ifdef OGT_IR
+
+varying mediump vec4 vColor;
+varying mediump vec2 vTexCoord0;
+
+uniform lowp sampler2D uTexture0;
+
+$0 = varying[0];
+
+varying[1].xy,
+^texture = sampler2D(0),
+$0 = clamp($0 * ^texture, 0.0, 1.0),
+sync,
+stop;
+#endif /* OGT_IR */
+
+static unsigned int
+mbs_fragment_single_texture[] = {
+	0x3153424d, 0x0000010c, 0x41524643, 0x00000104, /* |MBS1....CFRA....| */
+	0x00000005, 0x41545346, 0x00000008, 0x00000001, /* |....FSTA........| */
+	0x00000001, 0x53494446, 0x00000004, 0x00000000, /* |....FDIS........| */
+	0x55554246, 0x00000008, 0x00000100, 0x00000000, /* |FBUU............| */
+	0x494e5553, 0x00000038, 0x00000001, 0x00000004, /* |SUNI8...........| */
+	0x494e5556, 0x00000028, 0x49525453, 0x0000000c, /* |VUNI(...STRI....| */
+	0x78655475, 0x65727574, 0x00000030, 0x00020500, /* |uTexture0.......| */
+	0x00000001, 0x01100001, 0x00000000, 0xffff0000, /* |................| */
+	0x52415653, 0x00000060, 0x00000002, 0x52415656, /* |SVAR`.......VVAR| */
+	0x00000024, 0x49525453, 0x00000008, 0x6c6f4376, /* |$...STRI....vCol| */
+	0x0000726f, 0x00040100, 0x00000004, 0x02100004, /* |or..............| */
+	0x00000000, 0xffff0000, 0x52415656, 0x00000028, /* |........VVAR(...| */
+	0x49525453, 0x0000000c, 0x78655476, 0x726f6f43, /* |STRI....vTexCoor| */
+	0x00003064, 0x00020100, 0x00000002, 0x02100002, /* |d0..............| */
+	0x00000000, 0xffff0004, 0x4e494244, 0x00000024, /* |........DBIN$...| */
+	0x02300083, 0xf0003c60, 0x00000000, 0x000005e6, /* |..0.`<..........| */
+	0x1f083c20, 0x00000000, 0x39001000, 0x03900e4e, /* | <.........9N...| */
+	0x0000001f,					/* |....| */
+};
+
+/*
+ *
+ * Fragment shader for dual textures and a color.
+ *
+ */
+
+/*
+ * ESSL code: the same shader as used directly.
+ */
+#ifdef ESSL_CODE
+
+precision mediump float;
+
+varying vec4 vColor;
+varying vec2 vTexCoord0;
+varying vec2 vTexCoord1;
+
+uniform sampler2D uTexture0;
+uniform sampler2D uTexture1;
+
+void main()
+{
+	gl_FragColor = clamp(vColor * texture2D(uTexture0, vTexCoord0) *
+			     texture2D(uTexture1, vTexCoord1), 0.0, 1.0);
+}
+
+#endif /* ESSL_CODE */
+
+/*
+ * IR: written directly.
+ */
+#ifdef OGT_IR
+
+varying mediump vec4 vColor;
+varying mediump vec2 vTexCoord0;
+varying mediump vec2 vTexCoord1;
+
+uniform lowp sampler2D uTexture0;
+uniform lowp sampler2D uTexture1;
+
+$0 = varying[0];
+
+varying[1].xy,
+^texture = sampler2D(0),
+$0 = $0 * ^texture,
+sync;
+
+varying[1].zw,
+^texture = sampler2D(1),
+$0 = clamp($0 * ^texture, 0.0, 1.0),
+sync,
+stop;
+
+#endif /* OGT_IR */
+
+static unsigned int
+mbs_fragment_dual_texture[] = {
+	0x3153424d, 0x00000184, 0x41524643, 0x0000017c, /* |MBS1....CFRA|...| */
+	0x00000005, 0x41545346, 0x00000008, 0x00000001, /* |....FSTA........| */
+	0x00000001, 0x53494446, 0x00000004, 0x00000000, /* |....FDIS........| */
+	0x55554246, 0x00000008, 0x00000100, 0x00000000, /* |FBUU............| */
+	0x494e5553, 0x00000068, 0x00000002, 0x00000004, /* |SUNIh...........| */
+	0x494e5556, 0x00000028, 0x49525453, 0x0000000c, /* |VUNI(...STRI....| */
+	0x78655475, 0x65727574, 0x00000030, 0x00020500, /* |uTexture0.......| */
+	0x00000001, 0x01100001, 0x00000000, 0xffff0000, /* |................| */
+	0x494e5556, 0x00000028, 0x49525453, 0x0000000c, /* |VUNI(...STRI....| */
+	0x78655475, 0x65727574, 0x00000031, 0x00020500, /* |uTexture1.......| */
+	0x00000001, 0x01100001, 0x00000000, 0xffff0001, /* |................| */
+	0x52415653, 0x00000090, 0x00000003, 0x52415656, /* |SVAR........VVAR| */
+	0x00000024, 0x49525453, 0x00000008, 0x6c6f4376, /* |$...STRI....vCol| */
+	0x0000726f, 0x00040100, 0x00000004, 0x02100004, /* |or..............| */
+	0x00000000, 0xffff0000, 0x52415656, 0x00000028, /* |........VVAR(...| */
+	0x49525453, 0x0000000c, 0x78655476, 0x726f6f43, /* |STRI....vTexCoor| */
+	0x00003064, 0x00020100, 0x00000002, 0x02100002, /* |d0..............| */
+	0x00000000, 0xffff0004, 0x52415656, 0x00000028, /* |........VVAR(...| */
+	0x49525453, 0x0000000c, 0x78655476, 0x726f6f43, /* |STRI....vTexCoor| */
+	0x00003164, 0x00020100, 0x00000002, 0x02100002, /* |d1..............| */
+	0x00000000, 0xffff0005, 0x4e494244, 0x0000003c, /* |........DBIN<...| */
+	0x02300083, 0xf0003c60, 0x00000000, 0x023005c6, /* |..0.`<........0.| */
+	0x7f083c20, 0x00000000, 0x39001000, 0x03900e4e, /* | <.........9N...| */
+	0x0000000f, 0x000005e6, 0x7f0c3c20, 0x00000000, /* |........ <......| */
+	0x39001001, 0x03900e4e, 0x0000001f,		/* |...9N.......| */
+};
+
+int
+program_single_texture_load(struct limare_state *state, unsigned int *program)
+{
+	int ret;
+
+	*program = limare_program_new(state);
+
+	ret = vertex_shader_attach_mbs_stream(state, *program,
+					      mbs_vertex_single_texture,
+					      sizeof(mbs_vertex_single_texture)
+					      );
+	if (ret)
+		return ret;
+
+	ret = fragment_shader_attach_mbs_stream(state, *program,
+						mbs_fragment_single_texture,
+						sizeof(mbs_fragment_single_texture)
+						);
+	if (ret)
+		return ret;
+
+	ret = limare_link(state);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+int
+program_dual_texture_load(struct limare_state *state, unsigned int *program)
+{
+	int ret;
+
+	*program = limare_program_new(state);
+
+	ret = vertex_shader_attach_mbs_stream(state, *program,
+					      mbs_vertex_dual_texture,
+					      sizeof(mbs_vertex_dual_texture)
+					      );
+	if (ret)
+		return ret;
+
+	ret = fragment_shader_attach_mbs_stream(state, *program,
+						mbs_fragment_dual_texture,
+						sizeof(mbs_fragment_dual_texture)
+						);
+	if (ret)
+		return ret;
+
+	ret = limare_link(state);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+
+#else /* OGT_MBS_USE */
+
+int
+program_single_texture_load(struct limare_state *state, unsigned int *program)
+{
+	static const char* vertex_source =
+		"uniform mat4 uMatrix;\n"
+		"\n"
+		"attribute vec4 aPosition;\n"
+		"attribute vec4 aColor;\n"
+		"attribute vec2 aTexCoord0;\n"
+		"\n"
+		"varying vec4 vColor;\n"
+		"varying vec2 vTexCoord0;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_Position = uMatrix * aPosition;\n"
+		"    vColor = aColor;\n"
+		"    vTexCoord0 = aTexCoord0;\n"
+		"}\n";
+
+	static const char* fragment_source =
+		"precision mediump float;\n"
+		"\n"
+		"varying vec4 vColor;\n"
+		"varying vec2 vTexCoord0;\n"
+		"\n"
+		"uniform sampler2D uTexture0;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_FragColor = clamp(vColor * texture2D(uTexture0,"
+		" vTexCoord0), 0.0, 1.0);\n"
+		"}\n";
+	int ret;
+
+	*program = limare_program_new(state);
+
+	vertex_shader_attach(state, *program, vertex_source);
+
+	fragment_shader_attach(state, *program, fragment_source);
+
+	ret = limare_link(state);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+
+int
+program_dual_texture_load(struct limare_state *state, unsigned int *program)
+{
+	static const char* vertex_source =
+		"uniform mat4 uMatrix;\n"
+		"\n"
+		"attribute vec4 aPosition;\n"
+		"attribute vec4 aColor;\n"
+		"attribute vec2 aTexCoord0;\n"
+		"attribute vec2 aTexCoord1;\n"
+		"\n"
+		"varying vec4 vColor;\n"
+		"varying vec2 vTexCoord0;\n"
+		"varying vec2 vTexCoord1;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_Position = uMatrix * aPosition;\n"
+		"    vColor = aColor;\n"
+		"    vTexCoord0 = aTexCoord0;\n"
+		"    vTexCoord1 = aTexCoord1;\n"
+		"}\n";
+
+	static const char* fragment_source =
+		"precision mediump float;\n"
+		"\n"
+		"varying vec4 vColor;\n"
+		"varying vec2 vTexCoord0;\n"
+		"varying vec2 vTexCoord1;\n"
+		"\n"
+		"uniform sampler2D uTexture0;\n"
+		"uniform sampler2D uTexture1;\n"
+		"\n"
+		"void main()\n"
+		"{\n"
+		"    gl_FragColor = clamp(vColor * "
+		"texture2D(uTexture0, vTexCoord0) *"
+		"texture2D(uTexture1, vTexCoord1),"
+		" 0.0, 1.0);\n"
+		"}\n";
+	int ret;
+
+	*program = limare_program_new(state);
+
+	vertex_shader_attach(state, *program, vertex_source);
+
+	fragment_shader_attach(state, *program, fragment_source);
+
+	ret = limare_link(state);
+	if (ret)
+		return ret;
+
+	return 0;
+}
+#endif /* OGT_MBS_USE */
