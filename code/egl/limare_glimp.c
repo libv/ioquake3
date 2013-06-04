@@ -57,39 +57,6 @@ struct limare_state *state;
 static int frame_count;
 static int draw_count;
 
-static void
-fbdev_size(int *width, int *height)
-{
-#define FBDEV_DEV "/dev/fb0"
-	int fd = open(FBDEV_DEV, O_RDWR);
-	struct fb_var_screeninfo info;
-
-	/* some lame defaults */
-	*width = 640;
-	*height = 480;
-
-	if (fd == -1) {
-		fprintf(stderr, "Error: failed to open %s: %s\n", FBDEV_DEV,
-			strerror(errno));
-		return;
-	}
-
-	if (ioctl(fd, FBIOGET_VSCREENINFO, &info)) {
-		fprintf(stderr, "Error: failed to run ioctl on %s: %s\n",
-			FBDEV_DEV, strerror(errno));
-		close(fd);
-		return;
-	}
-
-	close(fd);
-
-	if (info.xres && info.yres) {
-		*width = info.xres;
-		*height = info.yres;
-	} else
-		fprintf(stderr, "Error: FB claims 0x0 dimensions\n");
-}
-
 unsigned int program_single_texture;
 unsigned int program_dual_texture;
 unsigned int program_current;
@@ -266,13 +233,12 @@ GLimp_Init(void)
 
 	//limare_buffer_clear(state);
 
-	fbdev_size(&fb_width, &fb_height);
-
-	ri.Printf(PRINT_ALL, "FB dimensions %dx%d\n", fb_width, fb_height);
-
-	ret = limare_state_setup(state, fb_width, fb_height, 0x00000000);
+	ret = limare_state_setup(state, 0, 0, 0x00000000);
 	if (ret)
 		return;
+
+	limare_buffer_size(state, &fb_width, &fb_height);
+	ri.Printf(PRINT_ALL, "FB dimensions %dx%d\n", fb_width, fb_height);
 
 	glConfig.isFullscreen = qtrue;
 	glConfig.vidWidth = fb_width;
